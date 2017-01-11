@@ -7,5 +7,5 @@ docker build -t tensorboard/api:latest .
 
 Then the server can be started with:
 ```bash
-docker run -dP tensorboard/api
+docker run -dP -name tensorboard tensorboard/api
 ```
