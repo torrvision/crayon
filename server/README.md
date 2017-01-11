@@ -9,3 +9,4 @@ Then the server can be started with:
 ```bash
 docker run -dP -name tensorboard tensorboard/api
 ```
+TODO: fix ports (because -P give random host ports) and document them here
