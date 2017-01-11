@@ -7,12 +7,5 @@ docker build -t tensorboard/api:latest .
 
 Then the server can be started with:
 ```bash
-# In interactive mode:
-docker run -P tensorboard/api
-# In interactive mode:
-docker run -P -it tensorboard/api
+docker run -dP tensorboard/api
 ```
-
-* Move to this folder
-* Run `docker build -t tensorboard/api:latest .`
-* You can now launch the image with `docker run -P -it tensorboard/api`
