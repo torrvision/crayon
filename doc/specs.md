@@ -31,14 +31,14 @@ API specification
       * value
 
 ## Histogram data
-  * POST `/data/histograms?xp=foo&name=bar`
+  * POST `/data/histograms?xp=foo&name=bar&tobuild=true`
     * Adds a new histogram in the experience `foo` for the scalar named `bar`
     * param:
       * `xp`: the considered experience
       * `name`: the name of the scalar metric we want to add a value to
-    * post content: a json with a single list containing all the values that will be converted to an histogram.
-    * OR TODO: pick one or the other
-    * post content: a json containing a dictionary with the following keys:
+      * `tobuild`: if true, the post content should be a list, otherwise the histogram
+    * post content (`tobuild`=true): a json with a single list containing all the values that will be converted to an histogram
+    * post content (`tobuild`=false): a json containing a dictionary with the following keys:
       * `min`: the minimum value
       * `max`: the maximum value
       * `len`: the number of entries
@@ -72,9 +72,14 @@ API specification
 ```
 
 ## Backup data
-  * GET `/backup`
-    * Return a zip file containing all the datas on the server.
+  * GET `/backup?xp=foo`
+    * Return a zip file containing all the datas for the experiment `foo`
+    * param:
+      * `xp`: the experiment to backup
 
-  * POST `/backup?force=1`
-    * Drop all current datas and restore the server to the state contained in the zip.
-    * post content: a zip file coming from the backup GET request.
+  * POST `/backup?xp=foo&force=1`
+    * Drop all current datas for the experiment `foo` and replace them with the state contained in the zip
+    * param:
+      * `xp`: the experiment to replace
+      * `force`: has to be set to 1 to be able to delete the old experiment
+    * post content: a zip file coming from the backup GET request
