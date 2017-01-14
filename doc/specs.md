@@ -37,15 +37,19 @@ API specification
       * `xp`: the considered experience
       * `name`: the name of the scalar metric we want to add a value to
       * `tobuild`: if true, the post content should be a list, otherwise the histogram
-    * post content (`tobuild`=true): a json with a single list containing all the values that will be converted to an histogram
-    * post content (`tobuild`=false): a json containing a dictionary with the following keys:
-      * `min`: the minimum value
-      * `max`: the maximum value
-      * `len`: the number of entries
-      * `bucket_limit`: a list of `len` elements containing the (right) limit for each bucket
-      * `bucket`: a list of `len` elements containing the count for each bucket
-      * [`sum`]: the sum of all the values
-      * [`sum_squares`]: the squared sum of all the values
+    * post content: a json containing a list of 3 elements:
+      * wall time of the measure
+      * step of the measure
+      * the histogram:
+        * if `tobuild`=true: a single list containing all the values that will be converted to an histogram
+        * if `tobuild`=false: json containing a dictionary with the following keys:
+         * `min`: the minimum value
+         * `max`: the maximum value
+         * `len`: the number of entries
+         * `bucket_limit`: a list of `len` elements containing the (right) limit for each bucket
+         * `bucket`: a list of `len` elements containing the count for each bucket
+         * `sum` (optionnal): the sum of all the values
+         * `sum_squares` (optionnal): the squared sum of all the values
 
   * GET `/data/histograms?xp=foo&name=bar`
     * Get the values for the histogram named `bar` in the experience `foo`
