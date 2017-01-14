@@ -20,7 +20,7 @@ import bisect
 
 # Backup includes
 from os import path
-from subprocess import call
+from subprocess import Popen, PIPE
 from flask import send_file
 import shutil
 
@@ -259,8 +259,8 @@ def post_backup():
     zip_file.write(request.data)
 
   folder_path = tensorboard_folder.format(experiment)
-  call("mkdir -p {}".format(folder_path))
-  call("pushd {}; unzip {}; popd".format(folder_path, zip_file_path))
+  Popen("mkdir -p {}".format(folder_path),stdout=PIPE, shell=True)
+  Popen("cd {}; unzip {}".format(folder_path, zip_file_path),stdout=PIPE, shell=True)
 
   return "ok"
 
