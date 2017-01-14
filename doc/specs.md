@@ -45,7 +45,7 @@ API specification
         * if `tobuild`=false: json containing a dictionary with the following keys:
           * `min`: the minimum value
           * `max`: the maximum value
-          * `len`: the number of entries
+          * `num`: the number of entries
           * `bucket_limit`: a list of `len` elements containing the (right) limit for each bucket
           * `bucket`: a list of `len` elements containing the count for each bucket
           * `sum` (optionnal): the sum of all the values
