@@ -43,13 +43,13 @@ API specification
       * the histogram:
         * if `tobuild`=true: a single list containing all the values that will be converted to an histogram
         * if `tobuild`=false: json containing a dictionary with the following keys:
-         * `min`: the minimum value
-         * `max`: the maximum value
-         * `len`: the number of entries
-         * `bucket_limit`: a list of `len` elements containing the (right) limit for each bucket
-         * `bucket`: a list of `len` elements containing the count for each bucket
-         * `sum` (optionnal): the sum of all the values
-         * `sum_squares` (optionnal): the squared sum of all the values
+          * `min`: the minimum value
+          * `max`: the maximum value
+          * `len`: the number of entries
+          * `bucket_limit`: a list of `len` elements containing the (right) limit for each bucket
+          * `bucket`: a list of `len` elements containing the count for each bucket
+          * `sum` (optionnal): the sum of all the values
+          * `sum_squares` (optionnal): the squared sum of all the values
 
   * GET `/data/histograms?xp=foo&name=bar`
     * Get the values for the histogram named `bar` in the experience `foo`
