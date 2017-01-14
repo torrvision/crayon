@@ -1,5 +1,5 @@
 # Flask app server
-from flask import Flask, request, json, Response
+from flask import Flask, request, json
 app = Flask("tensorboardhttpapi")
 
 # HTTP client to use the tensorboard api
@@ -18,13 +18,20 @@ not_supported_types = [
 import tensorflow as tf
 import bisect
 
+# Backup includes
+from os import path
+from subprocess import call
+from flask import send_file
+import shutil
+
 ### Tensorboard utility functions
+tensorboard_folder = "/tmp/tensorboard/{}"
 xp_writers = {}
 def tb_get_xp_writer(experiment):
   if experiment in xp_writers:
     return xp_writers[experiment]
 
-  xp_folder = "/tmp/tensorboard/{}".format(experiment)
+  xp_folder = tensorboard_folder.format(experiment)
   writer = tf.summary.FileWriter(xp_folder, flush_secs=1)
   xp_writers[experiment] = writer
   return writer
@@ -47,7 +54,7 @@ def tb_add_histogram(experiment, name, wall_time, step, histo):
   writer.add_event(event)
   writer.flush()
 
-def tb_request(type, run, tag):
+def tb_request(type, run=None, tag=None):
   request_url = "http://localhost:8888/data/{}"
   if run and tag:
     request_url += "?run={}&tag={}"
@@ -188,7 +195,7 @@ def post_histograms():
   if to_build:
     if (not data[2]) or (not isinstance(data[2], list)):
       return wrong_argument("elements to build the histogram are not in a list but '{}'".format(data[2]))
-    histogram_dict = tb_build_histogram(data[2])
+    histogram_dict = tb_make_histogram(data[2])
   else:
     already_built_required_params = {
       "min": [float, int],
@@ -213,6 +220,47 @@ def post_histograms():
         return wrong_argument(message)
 
   tb_add_histogram(experiment, name, data[0], data[1], histogram_dict)
+
+  return "ok"
+
+
+### Backup data
+@app.route('/backup', methods=['GET'])
+def get_backup():
+  experiment = request.args.get('xp')
+  if not experiment:
+    return wrong_argument("xp argument is required")
+
+  folder_path = tensorboard_folder.format(experiment)
+
+  if not path.isdir(folder_path):
+    return wrong_argument("Requested experiment '{}' does not exist".format(experiment))
+
+  zip_file = shutil.make_archive("/tmp/{}.zip".format(experiment), 'zip', folder_path)
+
+  return send_file(zip_file, mimetype='application/zip')
+
+@app.route('/backup', methods=['POST'])
+def post_backup():
+  experiment = request.args.get('xp')
+  force = request.args.get('force')
+  if (not experiment) or (not force):
+    return wrong_argument("xp and force argument are required")
+  if not force == '1':
+    return wrong_argument("Force must be set to 1 to be able to override a folder")
+
+  folder_path = tensorboard_folder.format(experiment)
+
+  if path.isdir(folder_path):
+    shutil.move(folder_path, "/tmp/backup_{}.old".format(experiment))
+
+  zip_file_path = "/tmp/{}.zip".format(experiment)
+  with open(zip_file_path, 'w') as zip_file:
+    zip_file.write(request.data)
+
+  folder_path = tensorboard_folder.format(experiment)
+  call("mkdir -p {}".format(folder_path))
+  call("pushd {}; unzip {}; popd".format(folder_path, zip_file_path))
 
   return "ok"
 
