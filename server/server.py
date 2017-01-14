@@ -156,10 +156,12 @@ def post_scalars():
   if (not experiment) or (not name):
     return wrong_argument("xp and name arguments are required")
 
-  if not len(request.form.keys()) == 1:
-    return wrong_argument("POST content is not correct: {}".format(request.form.keys()))
-  data = json.loads(request.form.keys()[0])
-  if (not data) or (not len(data)==3):
+  data = request.get_json()
+  if not data:
+    return wrong_argument("POST content is not a proper json")
+  if not isinstance(data, list):
+    return wrong_argument("POST content is not a list: {}".format(request.form.keys()))
+  if not len(data)==3:
     return wrong_argument("POST does not contain a list of 3 elements but '{}'".format(data))
 
   tb_add_scalar(experiment, name, data[0], data[1], data[2])
@@ -186,10 +188,12 @@ def post_histograms():
     return wrong_argument("xp, name and tobuild arguments are required")
   to_build = to_build == "true"
 
-  if not len(request.form.keys()) == 1:
-    return wrong_argument("POST content is not correct: {}".format(request.form.keys()))
-  data = json.loads(request.form.keys()[0])
-  if (not data) or (not len(data)==3):
+  data = request.get_json()
+  if not data:
+    return wrong_argument("POST content is not a proper json")
+  if not isinstance(data, list):
+    return wrong_argument("POST content is not a list: {}".format(request.form.keys()))
+  if not len(data)==3:
     return wrong_argument("POST does not contain a list of 3 elements but '{}'".format(data))
 
   if to_build:
