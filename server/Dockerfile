@@ -1,4 +1,5 @@
 FROM tensorflow/tensorflow
+RUN pip install flask
 ADD startup.sh /
 ADD server.py /
 EXPOSE 8889

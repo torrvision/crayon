@@ -7,6 +7,6 @@ docker build -t tensorboard/api:latest .
 
 Then the server can be started with:
 ```bash
-docker run -dP -name tensorboard tensorboard/api
+docker run -d -p 8888:8888 -p 8889:8889 -name tensorboard tensorboard/api
 ```
 TODO: fix ports (because -P give random host ports) and document them here
