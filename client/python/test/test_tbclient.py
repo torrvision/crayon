@@ -16,10 +16,7 @@ class TBClientTestSuite(unittest.TestCase):
         h.kill_remove()
 
     def test_init_connect_to_wrong(self):
-        self.failUnlessRaises(ConnectionError, TBClient, "not_open", 8889)
-
-    def test_add_scalar(self):
-        self.
+        self.failUnlessRaises(ValueError, TBClient, "not_open", 8889)
 
 if __name__ == '__main__':
     unittest.main()

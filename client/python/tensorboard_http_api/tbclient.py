@@ -13,9 +13,16 @@ class TBClient(object):
                 self.url.startswith("https://")):
             self.url = "http://" + self.url
 
-        # check server is up. Might be a bit costly, so we should find a better
-        # method to do it.
-        assert(requests.get(self.url).ok)
+        # check server is working (not only up).
+        try:
+            assert(requests.get(self.url).ok)
+        except requests.ConnectionError:
+            raise ValueError("The server at {}:{}".format(self.hostname,
+                                                          self.port) +
+                             "does not appear to be up!")
+        except AssertionError:
+            raise RuntimeError("Something went wrong!" +
+                               " Tensorboard may be the problem.")
 
     def get_experiments(self, xp=None):
         query = "/data"
