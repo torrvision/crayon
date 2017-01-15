@@ -4,7 +4,7 @@ import json
 
 class TBClient(object):
 
-    def __init__(self, hostname, port):
+    def __init__(self, hostname="localhost", port=8889):
         self.hostname = hostname
         self.port = port
         self.url = self.hostname + ":" + str(self.port)
@@ -19,7 +19,7 @@ class TBClient(object):
         except requests.ConnectionError:
             raise ValueError("The server at {}:{}".format(self.hostname,
                                                           self.port) +
-                             "does not appear to be up!")
+                             " does not appear to be up!")
         except AssertionError:
             raise RuntimeError("Something went wrong!" +
                                " Tensorboard may be the problem.")
@@ -34,6 +34,7 @@ class TBClient(object):
         return experiments
 
     def add_scalar(self, xp, name, data):
+        assert(len(data) == 3)
         query = "/data/scalars?xp={}&name={}".format(xp, name)
         r = requests.post(self.url + query, json=data)
         if not r.ok:

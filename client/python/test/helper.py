@@ -17,7 +17,7 @@ class Helper(object):
             detach=True,
             name=name)
         # TODO how do we do this properly?
-        time.sleep(1)
+        time.sleep(1.5)
 
     def kill(self):
         self.container.kill()
