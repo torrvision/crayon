@@ -1,5 +1,6 @@
 import unittest
 import time
+import os
 
 from helper import Helper
 from tensorboard_http_api.tbclient import TBClient
@@ -231,3 +232,50 @@ class TBClientTestSuite(unittest.TestCase):
         tbc.add_histogram("foo", "bar", [0, 0, data])
         time.sleep(1)
         self.assertRaises(ValueError, tbc.get_histograms, "foo", "")
+
+    # Only checks that we get a zip file.
+    # TODO open and match data to recorded
+    def test_get_data(self):
+        tbc = TBClient()
+        data = [time.clock(), 1, 2]
+        tbc.add_scalar("foo", "bar", data)
+        time.sleep(1)
+        filename = tbc.get_data("foo")
+        os.remove(filename)
+
+    def test_get_data_empty(self):
+        tbc = TBClient()
+        self.assertRaises(ValueError, tbc.get_data, "foo")
+
+    def test_get_data_wrong_experiment(self):
+        tbc = TBClient()
+        data = [time.clock(), 1, 2]
+        tbc.add_scalar("foo", "bar", data)
+        time.sleep(1)
+        self.assertRaises(ValueError, tbc.get_data, "not_there")
+
+    # Only checks that we set a zip file.
+    def test_set_data(self):
+        tbc = TBClient()
+        data = [time.clock(), 1, 2]
+        tbc.add_scalar("foo", "bar", data)
+        time.sleep(1)
+        filename = tbc.get_data("foo")
+        time.sleep(1)
+        tbc.set_data("foo", filename)
+        os.remove(filename)
+
+    def test_set_data_force(self):
+        tbc = TBClient()
+        data = [time.clock(), 1, 2]
+        tbc.add_scalar("foo", "bar", data)
+        time.sleep(1)
+        filename = tbc.get_data("foo")
+        time.sleep(1)
+        tbc.set_data("foo", filename, 1)
+        os.remove(filename)
+
+    def test_set_data_wrong_file(self):
+        tbc = TBClient()
+        self.assertRaises(IOError, tbc.set_data, "foo",
+                          "random_noise")

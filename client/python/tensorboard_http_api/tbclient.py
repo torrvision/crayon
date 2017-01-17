@@ -1,5 +1,6 @@
 import requests
 import json
+import time
 
 
 class TBClient(object):
@@ -64,19 +65,26 @@ class TBClient(object):
             raise ValueError("Something went wrong.")
         return json.loads(r.text)
 
-    def set_data(self, xp, force, data):
-        query = "/data/backup?xp={}&force={}".format(
+    def set_data(self, xp, zip_file, force=0):
+        query = "/backup?xp={}&force={}".format(
             xp, force)
-        r = requests.post(self.url + query, json=data)
+        fileobj = open(zip_file, 'rb')
+        r = requests.post(self.url + query, data={"mysubmit": "Go"},
+                          files={"archive": ("backup.zip", fileobj)})
         if not r.ok:
             raise ValueError("Something went wrong.")
 
-    def get_data(self, xp):
-        query = "/data/backup?xp={}".format(xp)
+    def get_data(self, xp, filename=None):
+        query = "/backup?xp={}".format(xp)
         r = requests.get(self.url + query)
         if not r.ok:
             raise ValueError("Something went wrong.")
-        return r.text
+        if not filename:
+            filename = "backup_" + str(time.time())
+        out = open(filename + ".zip", "w")
+        out.write(r.content)
+        out.close()
+        return filename + ".zip"
 
     def check_histogram_data(self, data, tobuild):
         if tobuild:
