@@ -3,7 +3,7 @@ import json
 import time
 
 
-class TBClient(object):
+class CrayonClient(object):
 
     def __init__(self, hostname="localhost", port=8889):
         self.hostname = hostname
