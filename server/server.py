@@ -1,6 +1,6 @@
 # Flask app server
 from flask import Flask, request, json
-app = Flask("tensorboardhttpapi")
+app = Flask("crayonserver")
 
 # HTTP client to use the tensorboard api
 import urllib2
