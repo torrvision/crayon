@@ -31,7 +31,7 @@ API specification
       * value
 
 ## Histogram data
-  * POST `/data/histograms?xp=foo&name=bar&tobuild=true`
+  * POST `/data/histograms?xp=foo&name=bar&tobuild=True`
     * Adds a new histogram in the experience `foo` for the scalar named `bar`
     * param:
       * `xp`: the considered experience
@@ -45,7 +45,7 @@ API specification
         * if `tobuild`=false: json containing a dictionary with the following keys:
           * `min`: the minimum value
           * `max`: the maximum value
-          * `len`: the number of entries
+          * `num`: the number of entries
           * `bucket_limit`: a list of `len` elements containing the (right) limit for each bucket
           * `bucket`: a list of `len` elements containing the count for each bucket
           * `sum` (optionnal): the sum of all the values
@@ -81,7 +81,7 @@ API specification
     * param:
       * `xp`: the experiment to backup
 
-  * POST `/backup?xp=foo&force=1`
+  * POST `/backup?xp=foo&force=True`
     * Drop all current datas for the experiment `foo` and replace them with the state contained in the zip
     * param:
       * `xp`: the experiment to replace
