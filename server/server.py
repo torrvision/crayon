@@ -186,7 +186,7 @@ def post_histograms():
   to_build = request.args.get('tobuild')
   if (not experiment) or (not name) or (not to_build):
     return wrong_argument("xp, name and tobuild arguments are required")
-  to_build = to_build == "true"
+  to_build = to_build.lower() == "true"
 
   data = request.get_json()
   if not data:
@@ -250,7 +250,7 @@ def post_backup():
   force = request.args.get('force')
   if (not experiment) or (not force):
     return wrong_argument("xp and force argument are required")
-  if not force == '1':
+  if not force.lower() == 'true':
     return wrong_argument("Force must be set to 1 to be able to override a folder")
 
   folder_path = tensorboard_folder.format(experiment)

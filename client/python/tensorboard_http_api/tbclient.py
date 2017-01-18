@@ -53,7 +53,7 @@ class TBClient(object):
         if not self.check_histogram_data(data[2], tobuild):
             raise ValueError("Data was not provided in a valid format!")
         query = "/data/histograms?xp={}&name={}&tobuild={}".format(
-            xp, name, str(tobuild).lower())
+            xp, name, tobuild)
         r = requests.post(self.url + query, json=data)
         if not r.ok:
             raise ValueError("Something went wrong.")
@@ -65,7 +65,7 @@ class TBClient(object):
             raise ValueError("Something went wrong.")
         return json.loads(r.text)
 
-    def set_data(self, xp, zip_file, force=0):
+    def set_data(self, xp, zip_file, force=False):
         query = "/backup?xp={}&force={}".format(
             xp, force)
         fileobj = open(zip_file, 'rb')
