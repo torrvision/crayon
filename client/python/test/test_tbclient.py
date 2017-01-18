@@ -262,7 +262,7 @@ class TBClientTestSuite(unittest.TestCase):
         time.sleep(1)
         filename = tbc.get_data("foo")
         time.sleep(1)
-        tbc.set_data("foo", filename)
+        tbc.set_data("foo", filename, True)
         os.remove(filename)
 
     def test_set_data_force(self):

@@ -50,7 +50,9 @@ class TBClient(object):
 
     def add_histogram(self, xp, name, data, tobuild=False):
         assert(len(data) == 3)
-        if not self.check_histogram_data(data[2], tobuild):
+
+        if tobuild and (not isinstance(data[2], dict)
+                        or not self.check_histogram_data(data[2], tobuild)):
             raise ValueError("Data was not provided in a valid format!")
         query = "/data/histograms?xp={}&name={}&tobuild={}".format(
             xp, name, tobuild)
@@ -89,6 +91,7 @@ class TBClient(object):
     def check_histogram_data(self, data, tobuild):
         # TODO should use a schema here
         # Note: all of these are sorted already
+
         expected = ["bucket", "bucket_limit", "max", "min", "num"]
         expected2 = ["bucket", "bucket_limit", "max", "min", "num",
                      "sum"]
