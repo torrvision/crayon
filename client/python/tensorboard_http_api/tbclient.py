@@ -80,15 +80,13 @@ class TBClient(object):
         if not r.ok:
             raise ValueError("Something went wrong.")
         if not filename:
-            filename = "backup_" + str(time.time())
+            filename = "backup_" + xp + "_" + str(time.time())
         out = open(filename + ".zip", "w")
         out.write(r.content)
         out.close()
         return filename + ".zip"
 
     def check_histogram_data(self, data, tobuild):
-        if tobuild:
-            return len(data) == 7
         # TODO should use a schema here
         # Note: all of these are sorted already
         expected = ["bucket", "bucket_limit", "max", "min", "num"]
