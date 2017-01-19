@@ -36,6 +36,9 @@ def tb_get_xp_writer(experiment):
   xp_writers[experiment] = writer
   return writer
 
+def tb_xp_writer_exists(experiment):
+  return experiment in xp_writers
+
 def tb_add_scalar(experiment, name, wall_time, step, value):
   writer = tb_get_xp_writer(experiment)
   summary = tf.Summary(value=[
@@ -114,7 +117,7 @@ def wrong_argument(message):
   return message, 400
 
 ### Experience management
-@app.route('/data')
+@app.route('/data', methods=["GET"])
 def get_all_experiments():
   experiment = request.args.get('xp')
 
@@ -123,8 +126,9 @@ def get_all_experiments():
   if not isinstance(req_res, str):
     return req_res
   tb_data = json.loads(req_res)
-  print(experiment)
   if experiment:
+    if not tb_xp_writer_exists(experiment):
+      return wrong_argument("Unknown experiment name '{}'".format(experiment))
     if experiment in tb_data:
       result = tb_data[experiment]
       # Remove the not supported types from the answer
@@ -136,8 +140,20 @@ def get_all_experiments():
       return wrong_argument("Unknown experiment name '{}'".format(experiment))
   else:
     result = json.dumps(tb_data.keys())
-
   return result 
+
+@app.route('/data', methods=["POST"])
+def post_experiment():
+  experiment = str(request.get_json()) # Is unicode otherwise
+  if not experiment:
+    return wrong_argument("post content is not a string but '{}'".format(type(experiment)))
+
+  if tb_xp_writer_exists(experiment):
+    return wrong_argument("'{}' experiment already exists".format(experiment))
+
+  tb_get_xp_writer(experiment)
+  return "ok"
+
 
 ### Scalar data
 @app.route('/data/scalars', methods=["GET"])
@@ -152,6 +168,8 @@ def get_scalars():
 @app.route('/data/scalars', methods=['POST'])
 def post_scalars():
   experiment = request.args.get('xp')
+  if not tb_xp_writer_exists(experiment):
+    return wrong_argument("Unknown experiment name '{}'".format(experiment))
   name = request.args.get('name')
   if (not experiment) or (not name):
     return wrong_argument("xp and name arguments are required")
@@ -160,7 +178,7 @@ def post_scalars():
   if not data:
     return wrong_argument("POST content is not a proper json")
   if not isinstance(data, list):
-    return wrong_argument("POST content is not a list: {}".format(request.form.keys()))
+    return wrong_argument("POST content is not a list: '{}'".format(request.form.keys()))
   if not len(data)==3:
     return wrong_argument("POST does not contain a list of 3 elements but '{}'".format(data))
 
@@ -182,6 +200,8 @@ def get_histograms():
 @app.route('/data/histograms', methods=['POST'])
 def post_histograms():
   experiment = request.args.get('xp')
+  if not tb_xp_writer_exists(experiment):
+    return wrong_argument("Unknown experiment name '{}'".format(experiment))
   name = request.args.get('name')
   to_build = request.args.get('tobuild')
   if (not experiment) or (not name) or (not to_build):
@@ -192,7 +212,7 @@ def post_histograms():
   if not data:
     return wrong_argument("POST content is not a proper json")
   if not isinstance(data, list):
-    return wrong_argument("POST content is not a list: {}".format(request.form.keys()))
+    return wrong_argument("POST content is not a list: '{}'".format(request.form.keys()))
   if not len(data)==3:
     return wrong_argument("POST does not contain a list of 3 elements but '{}'".format(data))
 
@@ -211,7 +231,7 @@ def post_histograms():
     histogram_dict = data[2]
     for required_param in already_built_required_params:
       if not (required_param in histogram_dict):
-        message = "Missing argument {} to the given histogram".format(required_param)
+        message = "Missing argument '{}' to the given histogram".format(required_param)
         return wrong_argument(message)
       is_ok = False
       for required_type in already_built_required_params[required_param]:
@@ -219,7 +239,7 @@ def post_histograms():
           is_ok = True
           break
       if not is_ok:
-        message = "Argument {} should be of type {} and is {}"
+        message = "Argument '{}' should be of type '{}' and is '{}'"
         message = message.format(required_param, str(already_built_required_params[required_param]), str(type(histogram_dict[required_param])))
         return wrong_argument(message)
 

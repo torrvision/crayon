@@ -6,6 +6,10 @@ API specification
     * Get the list of running experiments
     * return: a json list of name of all the running experiments
 
+  * POST `/data`
+    * Add a new experiment
+    * post content: a string with the name of the new experiment
+
   * GET `/data?xp=foo`
     * Get the informations about the experiment `foo`
     * return: a json dictionnary with the following entries:

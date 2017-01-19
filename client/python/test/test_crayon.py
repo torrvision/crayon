@@ -5,7 +5,6 @@ import os
 from helper import Helper
 from crayon.crayon import CrayonClient
 
-
 class CrayonClientTestSuite(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
@@ -32,10 +31,12 @@ class CrayonClientTestSuite(unittest.TestCase):
     def test_add_scalar(self):
         cc = CrayonClient()
         data = [time.clock(), 1, 2]
+        cc.new_experiment("foo")
         cc.add_scalar("foo", "bar", data)
 
     def test_add_scalar_less_data(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = []
         self.assertRaises(AssertionError, cc.add_scalar,
                           "foo", "bar", data)
@@ -43,6 +44,7 @@ class CrayonClientTestSuite(unittest.TestCase):
     # TODO These should really be tested singularly...
     def test_add_scalar_wrong_data(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = ["lol", "lulz", "lelz"]
         self.assertRaises(ValueError, cc.add_scalar,
                           "foo", "bar", data)
@@ -55,22 +57,26 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_add_scalar_wrong_variable(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = [time.clock(), 1, 2]
         self.assertRaises(ValueError, cc.add_scalar,
                           "foo", "", data)
 
     def test_get_scalars_no_data(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         self.assertRaises(ValueError, cc.get_scalars, "foo", "bar")
 
     def test_get_scalars_one_datum(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         cc.add_scalar("foo", "bar", [0, 0, 0])
         time.sleep(1)
         self.assertEqual(cc.get_scalars("foo", "bar"), [[0.0, 0, 0.0]])
 
     def test_get_scalars_two_data(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         cc.add_scalar("foo", "bar", [0, 0, 0])
         cc.add_scalar("foo", "bar", [1, 1, 1])
         time.sleep(1)
@@ -79,12 +85,14 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_get_scalars_wrong_experiment(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         cc.add_scalar("foo", "bar", [0, 0, 0])
         time.sleep(1)
         self.assertRaises(ValueError, cc.get_scalars, "", "bar")
 
     def test_get_scalars_wrong_variable(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         cc.add_scalar("foo", "bar", [0, 0, 0])
         time.sleep(1)
         self.assertRaises(ValueError, cc.get_scalars, "foo", "")
@@ -92,6 +100,7 @@ class CrayonClientTestSuite(unittest.TestCase):
     # Histograms
     def test_add_histogram(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = [time.clock(), 1, 2]
         data = {"min": 0,
                 "max": 100,
@@ -102,6 +111,7 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_add_histogram_with_sum(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = [time.clock(), 1, 2]
         data = {"min": 0,
                 "max": 100,
@@ -113,6 +123,7 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_add_histogram_with_sumsq(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = [time.clock(), 1, 2]
         data = {"min": 0,
                 "max": 100,
@@ -124,6 +135,7 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_add_histogram_with_sum_sumsq(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = [time.clock(), 1, 2]
         data = {"min": 0,
                 "max": 100,
@@ -136,6 +148,7 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_add_histogram_less_data(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = {"some data": 0}
         self.assertRaises(AssertionError, cc.add_histogram,
                           "foo", "bar", [data])
@@ -143,6 +156,7 @@ class CrayonClientTestSuite(unittest.TestCase):
     # TODO These should really be tested singularly...
     def test_add_histogram_wrong_data(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = ["lolz", "lulz", "lelz"]
         self.assertRaises(ValueError, cc.add_histogram,
                           "foo", "bar", [0, 1, data], True)
@@ -159,6 +173,7 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_add_histogram_wrong_variable(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
@@ -169,10 +184,12 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_get_histograms_no_data(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         self.assertRaises(ValueError, cc.get_histograms, "foo", "bar")
 
     def test_get_histograms_one_datum(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
@@ -188,6 +205,7 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_get_histograms_two_data(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
@@ -213,6 +231,7 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_get_histograms_wrong_experiment(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
@@ -224,6 +243,7 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_get_histograms_wrong_variable(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
@@ -237,6 +257,7 @@ class CrayonClientTestSuite(unittest.TestCase):
     # TODO open and match data to recorded
     def test_get_data(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = [time.clock(), 1, 2]
         cc.add_scalar("foo", "bar", data)
         time.sleep(1)
@@ -249,6 +270,7 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_get_data_wrong_experiment(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = [time.clock(), 1, 2]
         cc.add_scalar("foo", "bar", data)
         time.sleep(1)
@@ -257,6 +279,7 @@ class CrayonClientTestSuite(unittest.TestCase):
     # Only checks that we set a zip file.
     def test_set_data(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = [time.clock(), 1, 2]
         cc.add_scalar("foo", "bar", data)
         time.sleep(1)
@@ -267,6 +290,7 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_set_data_force(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         data = [time.clock(), 1, 2]
         cc.add_scalar("foo", "bar", data)
         time.sleep(1)
@@ -277,5 +301,6 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_set_data_wrong_file(self):
         cc = CrayonClient()
+        cc.new_experiment("foo")
         self.assertRaises(IOError, cc.set_data, "foo",
                           "random_noise")

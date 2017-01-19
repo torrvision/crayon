@@ -34,18 +34,25 @@ class CrayonClient(object):
             experiments = json.loads(r.text)
         return experiments
 
+    def new_experiment(self, xp):
+        assert(isinstance(xp, str))
+        query = "/data"
+        r = requests.post(self.url + query, json=xp)
+        if not r.ok:
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
+
     def add_scalar(self, xp, name, data):
         assert(len(data) == 3)
         query = "/data/scalars?xp={}&name={}".format(xp, name)
         r = requests.post(self.url + query, json=data)
         if not r.ok:
-            raise ValueError("Something went wrong.")
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
     def get_scalars(self, xp, name):
         query = "/data/scalars?xp={}&name={}".format(xp, name)
         r = requests.get(self.url + query)
         if not r.ok:
-            raise ValueError("Something went wrong.")
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
         return json.loads(r.text)
 
     def add_histogram(self, xp, name, data, tobuild=False):
@@ -58,13 +65,13 @@ class CrayonClient(object):
             xp, name, tobuild)
         r = requests.post(self.url + query, json=data)
         if not r.ok:
-            raise ValueError("Something went wrong.")
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
     def get_histograms(self, xp, name):
         query = "/data/histograms?xp={}&name={}".format(xp, name)
         r = requests.get(self.url + query)
         if not r.ok:
-            raise ValueError("Something went wrong.")
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
         return json.loads(r.text)
 
     def set_data(self, xp, zip_file, force=False):
@@ -74,13 +81,13 @@ class CrayonClient(object):
         r = requests.post(self.url + query, data={"mysubmit": "Go"},
                           files={"archive": ("backup.zip", fileobj)})
         if not r.ok:
-            raise ValueError("Something went wrong.")
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
     def get_data(self, xp, filename=None):
         query = "/backup?xp={}".format(xp)
         r = requests.get(self.url + query)
         if not r.ok:
-            raise ValueError("Something went wrong.")
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
         if not filename:
             filename = "backup_" + xp + "_" + str(time.time())
         out = open(filename + ".zip", "w")
