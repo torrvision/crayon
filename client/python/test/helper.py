@@ -9,9 +9,9 @@ class Helper(object):
         if start:
             self.start()
 
-    def start(self, tb_ip=8888, server_ip=8889, name="tbc_test"):
+    def start(self, tb_ip=8888, server_ip=8889, name="crayon"):
         self.container = self.client.containers.run(
-            "tensorboard/api:latest",
+            "alband/crayon:latest",
             ports={tb_ip: tb_ip,
                    server_ip: server_ip},
             detach=True,
