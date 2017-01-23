@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+import collections
 
 
 class CrayonClient(object):
@@ -44,6 +45,8 @@ class CrayonExperiment(object):
     def __init__(self, xp, client, zip_file=None):
         self.client = client
         self.xp = xp
+        self.scalar_steps = collections.defaultdict(int)
+        self.hist_steps = collections.defaultdict(int)
 
         if zip_file:
             self.init_from_file(zip_file, True)
@@ -65,12 +68,26 @@ class CrayonExperiment(object):
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
-    def add_scalar(self, name, data):
-        assert(len(data) == 3)
+    def add_scalar_value(self, name, value, wall_time=-1, step=-1):
+        if wall_time == -1:
+            wall_time = time.time()
+        if step == -1:
+            step = self.scalar_steps[name]
+            self.scalar_steps[name] += 1
+        else:
+            self.scalar_steps[name] = step + 1
         query = "/data/scalars?xp={}&name={}".format(self.xp, name)
+        data = [wall_time, step, value]
         r = requests.post(self.client.url + query, json=data)
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
+
+    def add_scalars_values(self, data, wall_time=-1, step=-1):
+        for name, value in data.iteritems():
+            if not isinstance(name, str):
+                msg = "Scalar name should be a string, got: {}.".format(name)
+                raise ValueError(msg)
+            self.add_scalar_value(name, value, wall_time, step)
 
     def get_scalars(self, name):
         query = "/data/scalars?xp={}&name={}".format(self.xp, name)
@@ -79,14 +96,22 @@ class CrayonExperiment(object):
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
         return json.loads(r.text)
 
-    def add_histogram(self, name, data, tobuild=False):
-        assert(len(data) == 3)
-
-        if tobuild and (not isinstance(data[2], dict)
-                        or not self.check_histogram_data(data[2], tobuild)):
+    def add_histogram(self, name, hist, tobuild=False, wall_time=-1, step=-1):
+        if wall_time == -1:
+            wall_time = time.time()
+        if step == -1:
+            step = self.scalar_steps[name]
+            self.scalar_steps[name] += 1
+        else:
+            self.scalar_steps[name] = step
+        if not tobuild and (not isinstance(hist, dict)
+                        or not self.check_histogram_data(hist, tobuild)):
+            raise ValueError("Data was not provided in a valid format!")
+        if tobuild and (not isinstance(hist, list)):
             raise ValueError("Data was not provided in a valid format!")
         query = "/data/histograms?xp={}&name={}&tobuild={}".format(
             self.xp, name, tobuild)
+        data = [wall_time, step, hist]
         r = requests.post(self.client.url + query, json=data)
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))

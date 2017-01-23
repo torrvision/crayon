@@ -181,6 +181,8 @@ def post_scalars():
     return wrong_argument("POST content is not a list: '{}'".format(request.form.keys()))
   if not len(data)==3:
     return wrong_argument("POST does not contain a list of 3 elements but '{}'".format(data))
+  if not (isinstance(data[2], int) or isinstance(data[2], float)):
+    return wrong_argument("POST value is not a number but '{}'".format(data[2]))
 
   tb_add_scalar(experiment, name, data[0], data[1], data[2])
 
