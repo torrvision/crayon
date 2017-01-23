@@ -1,9 +1,15 @@
 # The server is build completely inside a docker image.
 
-IF you do not have the docker image yet, run in this folder:
+IF you do not have the docker image yet:
 ```bash
+# Get it from Docker Hub
+docker pull alband/crayon
+
+# OR build it locally with:
 docker build -t alband/crayon:latest .
 ```
+
+
 
 Then the server can be started with:
 ```bash
