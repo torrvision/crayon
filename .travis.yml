@@ -11,7 +11,6 @@ before_install:
   - pip install docker
 script:
   - pushd client/python
-  - python -m unittest discover
   - popd
 
 before_deploy:
