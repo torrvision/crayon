@@ -1,15 +1,21 @@
 sudo: required
+
 language: python
 python:
-- '2.7'
+  - '2.7'
+
 services:
-- docker
+  - docker
+
 before_install:
-- pip install docker
+  - pip install docker
 script:
-- pushd client/python
-- python -m unittest discover
-- popd
+  - pushd client/python
+  - python -m unittest discover
+  - popd
+
+before_deploy:
+  - pushd client/python
 deploy:
   provider: pypi
   user: alband
@@ -17,3 +23,5 @@ deploy:
     secure: HmwpZ4rVgaGghIZsAeLu5+j/khrInhqjS1eRRvG/fktXjV9H94wlAxf3l3o7rlazexOynHke513xm/IERU/OT8ZcPFMLcjCdDCqVuHmurMph2y0je2XsW58ekjEcCGQ1zg/UAWpCMRrHZIm0G0gBtiuq7BeQTaJW3kE8vSlxr++GcGsQiEk0traZqmQLbvvGfFpHCazT/+kltJQPQQqi0m6rdZV1ayAKESxs9trQYzh99D9U2R63hbNhVDhOSTlXztRuafJpe356wCohQMGCst8wY8mHwhkqiJQbfuMPnWxnJ5JqcYeAKeFjqCL19hTQnDSKRHO0iy+oJQ2Xb411/hmZ5SVow6mfhQmhvaiSEZ+zll/QSGAXhkXaQLre/lFxdKtbHgU1jZtrRu/tiNrkkhDzW5vMhsRAMkZlz3RKc2Q95UTWKtyNXdSse9awLLkMPwHwLDxWKRPumXxyiPUR0UkxSxyj95FfP/qNK5VZpjIORW5SN+8CM4ByRCdetoqfzTdb6cZ5ZMUvLAlIkUkBvtQggz4eEkzYYTRaZpVRWmz8z+7nvhER/lOwS51tCrzfcNUHMmMou5cuuQSnUMPpP7xge3SB1HBKkSVrcmz3EZpk68sTenuXi5AH+WiepytCy2rSPbYS4bPCdQyywXS5hSQutL+Ecl+YRYnTy+Yy2nY=
   on:
     branch: master
+after_deploy:
+  -popd
