@@ -1,6 +1,11 @@
+sudo: required
 language: python
 python:
 - '2.7'
+services:
+- docker
+before_install:
+- pip install docker
 script:
 - pushd client/python
 - python -m unittest discover
