@@ -5,7 +5,7 @@ setup(name='pycrayon',
       author='torrvision',
       url='https://github.com/torrvision/crayon',
       packages=['pycrayon'],
-      version="0.1",
+      version="0.2",
       install_requires=[
         "docker",
         "requests"
