@@ -9,8 +9,12 @@ services:
 
 before_install:
   - pip install docker
+  - pushd server
+  - docker build -t alband/crayon:latest .
+  - popd
 script:
   - pushd client/python
+  - python -m unittest discover
   - popd
 
 before_deploy:
