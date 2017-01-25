@@ -29,138 +29,171 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def test_init_xp_empty(self):
         cc = CrayonClient()
-        self.assertRaises(ValueError, cc.new_experiment, "")
+        self.assertRaises(ValueError, cc.create_experiment, "")
+
+    def test_open_experiment(self):
+        cc = CrayonClient()
+        foo = cc.create_experiment("foo")
+        foo.add_scalar_value("bar", 1, step=2, wall_time=0)
+        time.sleep(1)
+        foo2 = cc.open_experiment("foo")
+        foo.add_scalar_value("bar", 3, wall_time=1)
+        time.sleep(1)
+        self.assertEqual(foo.get_scalar_values("bar"),
+                         [[0.0, 2, 1.0], [1.0, 3, 3.0]])
+
+    def test_remove_experiment(self):
+        cc = CrayonClient()
+        self.assertRaises(ValueError, cc.open_experiment, "foo")
+        foo = cc.create_experiment("foo")
+        foo.add_scalar_value("bar", 1, step=2, wall_time=0)
+        self.assertRaises(ValueError, cc.create_experiment, "foo")
+        time.sleep(1)
+        foo2 = cc.open_experiment("foo")
+        cc.remove_experiment(foo.xp_name)
+        self.assertRaises(ValueError, cc.remove_experiment, foo.xp_name)
+        foo = cc.create_experiment("foo")
 
     # scalars
     def test_add_scalar_value(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 2, wall_time=time.clock(), step=1)
 
     def test_add_scalar_less_data(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 2)
 
     # TODO These should really be tested singularly...
     def test_add_scalar_wrong_data(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         self.assertRaises(ValueError, foo.add_scalar_value,
                           "bar", "lol")
 
     def test_add_scalar_wrong_variable(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         self.assertRaises(ValueError, foo.add_scalar_value,
                           "", 2)
 
-    def test_add_scalars_values(self):
+    def test_add_scalar_batch(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = {"fizz": 3, "buzz": 5}
-        foo.add_scalars_values(data, wall_time=0, step=5)
+        foo.add_scalar_batch(data, wall_time=0, step=5)
         data = {"fizz": 6, "buzz": 10}
-        foo.add_scalars_values(data)
+        foo.add_scalar_batch(data)
 
-    def test_add_scalars_values_wrong_data(self):
+    def test_add_scalar_batch_wrong_data(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = {"fizz": "foo", "buzz": 5}
-        self.assertRaises(ValueError, foo.add_scalars_values, data)
+        self.assertRaises(ValueError, foo.add_scalar_batch, data)
         data = {3: 6, "buzz": 10}
-        self.assertRaises(ValueError, foo.add_scalars_values, data)
+        self.assertRaises(ValueError, foo.add_scalar_batch, data)
 
-    def test_get_scalars_no_data(self):
+    def test_get_scalar_values_no_data(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
-        self.assertRaises(ValueError, foo.get_scalars, "bar")
+        foo = cc.create_experiment("foo")
+        time.sleep(1)
+        self.assertRaises(ValueError, foo.get_scalar_values, "bar")
 
-    def test_get_scalars_one_datum(self):
+    def test_get_scalar_values_one_datum(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 0, wall_time=0, step=0)
         time.sleep(1)
-        self.assertEqual(foo.get_scalars("bar"), [[0.0, 0, 0.0]])
+        self.assertEqual(foo.get_scalar_values("bar"), [[0.0, 0, 0.0]])
 
-    def test_get_scalars_two_data(self):
+    def test_get_scalar_values_two_data(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 0, wall_time=0, step=0)
         foo.add_scalar_value("bar", 1, wall_time=1, step=1)
         time.sleep(1)
-        self.assertEqual(foo.get_scalars("bar"),
+        self.assertEqual(foo.get_scalar_values("bar"),
                          [[0.0, 0, 0.0], [1.0, 1, 1.0]])
 
-    def test_get_scalars_auto_step(self):
+    def test_get_scalar_values_auto_step(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 0, wall_time=0)
         foo.add_scalar_value("bar", 1, wall_time=1)
         foo.add_scalar_value("bar", 2, wall_time=2, step=10)
         foo.add_scalar_value("bar", 3, wall_time=3)
         time.sleep(1)
-        self.assertEqual(foo.get_scalars("bar"),
+        self.assertEqual(foo.get_scalar_values("bar"),
                          [[0.0, 0, 0.0], [1.0, 1, 1.0],
                           [2.0, 10, 2.0], [3.0, 11, 3.0]])
 
-    def test_get_scalars_wrong_variable(self):
+    def test_get_scalar_values_wrong_variable(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 0)
         time.sleep(1)
-        self.assertRaises(ValueError, foo.get_scalars,"")
+        self.assertRaises(ValueError, foo.get_scalar_values,"")
 
-    def test_add_scalars_values(self):
+    def test_add_scalar_batch(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = {"fizz": 3, "buzz": 5}
-        foo.add_scalars_values(data, wall_time=0, step=5)
+        foo.add_scalar_batch(data, wall_time=0, step=5)
         data = {"fizz": 6, "buzz": 10}
-        foo.add_scalars_values(data, wall_time=1)
+        foo.add_scalar_batch(data, wall_time=1)
         time.sleep(1)
-        self.assertEqual(foo.get_scalars("fizz"),
+        self.assertEqual(foo.get_scalar_values("fizz"),
                          [[0.0, 5, 3.0], [1.0, 6, 6.0]])
-        self.assertEqual(foo.get_scalars("buzz"),
+        self.assertEqual(foo.get_scalar_values("buzz"),
                          [[0.0, 5, 5.0], [1.0, 6, 10.0]])
 
-    # Histograms
-    def test_add_histogram(self):
+    def test_get_scalar_list(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
+        foo.add_scalar_value("fizz", 0, wall_time=0)
+        foo.add_scalar_value("buzz", 0, wall_time=0)
+        time.sleep(1)
+        self.assertEqual(sorted(foo.get_scalar_list()),
+                         sorted(["fizz", "buzz"]))
+
+    # Histograms
+    def test_add_histogram_value(self):
+        cc = CrayonClient()
+        foo = cc.create_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
                 "bucket_limit": [10, 50, 30],
                 "bucket": [5, 45, 25]}
-        foo.add_histogram("bar", data, wall_time=0, step=0)
-        foo.add_histogram("bar", data)
+        foo.add_histogram_value("bar", data, wall_time=0, step=0)
+        foo.add_histogram_value("bar", data)
 
-    def test_add_histogram_with_sum(self):
+    def test_add_histogram_value_with_sum(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
                 "bucket_limit": [10, 50, 30],
                 "bucket": [5, 45, 25],
                 "sum": 75}
-        foo.add_histogram("bar", data)
+        foo.add_histogram_value("bar", data)
 
-    def test_add_histogram_with_sumsq(self):
+    def test_add_histogram_value_with_sumsq(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
                 "bucket_limit": [10, 50, 30],
                 "bucket": [5, 45, 25],
                 "sum_squares": 5625}
-        foo.add_histogram("bar", data)
+        foo.add_histogram_value("bar", data)
 
-    def test_add_histogram_with_sum_sumsq(self):
+    def test_add_histogram_value_with_sum_sumsq(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
@@ -168,78 +201,79 @@ class CrayonClientTestSuite(unittest.TestCase):
                 "bucket": [5, 45, 25],
                 "sum": 75,
                 "sum_squares": 2675}
-        foo.add_histogram("bar", data)
+        foo.add_histogram_value("bar", data)
 
-    def test_add_histogram_to_build(self):
+    def test_add_histogram_value_to_build(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = [1,2,3,4,5]
-        foo.add_histogram("bar", data, tobuild=True)
+        foo.add_histogram_value("bar", data, tobuild=True)
 
-    def test_add_histogram_less_data(self):
+    def test_add_histogram_value_less_data(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = {"some data": 0}
-        self.assertRaises(ValueError, foo.add_histogram,
+        self.assertRaises(ValueError, foo.add_histogram_value,
                           "bar", data)
 
     # TODO These should really be tested singularly...
-    def test_add_histogram_wrong_data(self):
+    def test_add_histogram_value_wrong_data(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = ["lolz", "lulz", "lelz"]
-        self.assertRaises(ValueError, foo.add_histogram,
+        self.assertRaises(ValueError, foo.add_histogram_value,
                           "bar", data, tobuild=True)
 
-    def test_add_histogram_wrong_variable(self):
+    def test_add_histogram_value_wrong_variable(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
                 "bucket_limit": [10, 50, 30],
                 "bucket": [5, 45, 25]}
-        self.assertRaises(ValueError, foo.add_histogram,
+        self.assertRaises(ValueError, foo.add_histogram_value,
                           "", data)
 
-    def test_get_histograms_no_data(self):
+    def test_get_histogram_values_no_data(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
-        self.assertRaises(ValueError, foo.get_histograms, "bar")
+        foo = cc.create_experiment("foo")
+        time.sleep(1)
+        self.assertRaises(ValueError, foo.get_histogram_values, "bar")
 
-    def test_get_histograms_one_datum(self):
+    def test_get_histogram_values_one_datum(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
                 "bucket_limit": [10, 50, 30],
                 "bucket": [5, 45, 25]}
-        foo.add_histogram("bar", data, wall_time=0, step=0)
+        foo.add_histogram_value("bar", data, wall_time=0, step=0)
         time.sleep(1)
-        self.assertEqual(foo.get_histograms("bar"),
+        self.assertEqual(foo.get_histogram_values("bar"),
                          [[0.0, 0,
                            [0.0, 100.0, 3.0, 0.0, 0.0,
                             [10.0, 50.0, 30.0],
                             [5.0, 45.0, 25.0]]]])
 
-    def test_get_histograms_two_data(self):
+    def test_get_histogram_values_two_data(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
                 "bucket_limit": [10, 50, 30],
                 "bucket": [5, 45, 25]}
-        foo.add_histogram("bar", data, wall_time=0, step=0)
+        foo.add_histogram_value("bar", data, wall_time=0, step=0)
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
                 "bucket_limit": [10, 50, 30],
                 "bucket": [5, 45, 25]}
-        foo.add_histogram("bar", data, wall_time=1, step=1)
+        foo.add_histogram_value("bar", data, wall_time=1, step=1)
         time.sleep(1)
-        self.assertEqual(foo.get_histograms("bar"),
+        self.assertEqual(foo.get_histogram_values("bar"),
                          [[0.0, 0,
                            [0.0, 100.0, 3.0, 0.0, 0.0,
                             [10.0, 50.0, 30.0],
@@ -249,50 +283,78 @@ class CrayonClientTestSuite(unittest.TestCase):
                             [10.0, 50.0, 30.0],
                             [5.0, 45.0, 25.0]]]])
 
-    def test_get_histograms_wrong_variable(self):
+    def test_get_histogram_values_wrong_variable(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         data = {"min": 0,
                 "max": 100,
                 "num": 3,
                 "bucket_limit": [10, 50, 30],
                 "bucket": [5, 45, 25]}
-        foo.add_histogram("bar", data, wall_time=0, step=0)
+        foo.add_histogram_value("bar", data, wall_time=0, step=0)
         time.sleep(1)
-        self.assertRaises(ValueError, foo.get_histograms, "")
+        self.assertRaises(ValueError, foo.get_histogram_values, "")
+
+    def test_get_histogram_list(self):
+        cc = CrayonClient()
+        foo = cc.create_experiment("foo")
+        data = {"min": 0,
+                "max": 100,
+                "num": 3,
+                "bucket_limit": [10, 50, 30],
+                "bucket": [5, 45, 25]}
+        foo.add_histogram_value("fizz", data, wall_time=0, step=0)
+        foo.add_histogram_value("buzz", data, wall_time=1, step=1)
+        time.sleep(1)
+        self.assertEqual(sorted(foo.get_histogram_list()),
+                         sorted(["fizz", "buzz"]))
 
     # Only checks that we get a zip file.
     # TODO open and match data to recorded
-    def test_get_data(self):
+    def test_to_zip(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 2, wall_time=time.time(), step=1)
         time.sleep(1)
-        filename = foo.get_data()
+        filename = foo.to_zip()
         os.remove(filename)
 
     # Only checks that we set a zip file.
     def test_init_from_file(self):
         cc = CrayonClient()
-        foo = cc.new_experiment("foo")
+        foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 2, wall_time=time.time(), step=1)
         time.sleep(1)
-        filename = foo.get_data()
+        filename = foo.to_zip()
         time.sleep(1)
-        new = cc.new_experiment("new", filename)
-        os.remove(filename)
-
-    def test_set_data_force(self):
-        cc = CrayonClient()
-        foo = cc.new_experiment("foo")
-        foo.add_scalar_value("bar", 2, wall_time=time.time(), step=1)
-        time.sleep(1)
-        filename = foo.get_data()
-        time.sleep(1)
-        foo.init_from_file(filename, True)
+        new = cc.create_experiment("new", filename)
         os.remove(filename)
 
     def test_set_data_wrong_file(self):
         cc = CrayonClient()
-        self.assertRaises(IOError, cc.new_experiment, "foo",
+        self.assertRaises(IOError, cc.create_experiment, "foo",
                           "random_noise")
+
+    def test_backup(self):
+        cc = CrayonClient()
+        foo = cc.create_experiment("foo")
+        foo.add_scalar_value("bar", 2, wall_time=time.time(), step=1)
+        foo.add_scalar_value("bar", 2, wall_time=time.time(), step=2)
+        time.sleep(1)
+        foo_data = foo.get_scalar_values("bar")
+        filename = foo.to_zip()
+
+        cc.remove_experiment("foo")
+        time.sleep(1)
+
+        foo = cc.create_experiment("foo", zip_file=filename)
+        time.sleep(1)
+        new_data = foo.get_scalar_values("bar")
+        self.assertEqual(foo_data, new_data)
+
+        new = cc.create_experiment("new", zip_file=filename)
+        time.sleep(1)
+        new_data = new.get_scalar_values("bar")
+        self.assertEqual(foo_data, new_data)
+
+        os.remove(filename)

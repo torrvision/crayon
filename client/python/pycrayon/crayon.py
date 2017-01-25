@@ -3,6 +3,8 @@ import json
 import time
 import collections
 
+__version__ = "0.3"
+
 
 class CrayonClient(object):
 
@@ -17,16 +19,21 @@ class CrayonClient(object):
 
         # check server is working (not only up).
         try:
-            assert(requests.get(self.url).ok)
+            r = requests.get(self.url)
+            if not r.ok:
+                raise RuntimeError("Something went wrong!" +
+                                   " Server sent: {}.".format(r.text))
+            if not r.text == __version__:
+                msg = "Server runs version {} while the client runs version {}"
+                raise RuntimeError(msg.format(r.text, __version__))
+
+
         except requests.ConnectionError:
             raise ValueError("The server at {}:{}".format(self.hostname,
                                                           self.port) +
                              " does not appear to be up!")
-        except AssertionError:
-            raise RuntimeError("Something went wrong!" +
-                               " Tensorboard may be the problem.")
 
-    def get_experiments(self, xp=None):
+    def get_experiment_list(self):
         query = "/data"
         r = requests.get(self.url + query)
         if not r.ok:
@@ -35,38 +42,71 @@ class CrayonClient(object):
             experiments = json.loads(r.text)
         return experiments
 
-    def new_experiment(self, xp, zip_file=None):
-        assert(isinstance(xp, str))
-        return CrayonExperiment(xp, self, zip_file)
+    def open_experiment(self, xp_name):
+        assert(isinstance(xp_name, str))
+        return CrayonExperiment(xp_name, self, create=False)
 
+    def create_experiment(self, xp_name, zip_file=None):
+        assert(isinstance(xp_name, str))
+        return CrayonExperiment(xp_name, self, zip_file=zip_file, create=True)
+
+    def remove_experiment(self, xp_name):
+        assert(isinstance(xp_name, str))
+        query = "/data?xp={}".format(xp_name)
+        r = requests.delete(self.url + query)
+        if not r.ok:
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
 class CrayonExperiment(object):
 
-    def __init__(self, xp, client, zip_file=None):
+    def __init__(self, xp_name, client, zip_file=None, create=False):
         self.client = client
-        self.xp = xp
+        self.xp_name = xp_name
         self.scalar_steps = collections.defaultdict(int)
         self.hist_steps = collections.defaultdict(int)
 
         if zip_file:
-            self.init_from_file(zip_file, True)
+            if not create:
+                raise ValueError("Can only create a new experiment when a zip_file is provided")
+            self.__init_from_file(zip_file, True)
+        elif create:
+            self.__init_empty()
         else:
-            self.init_empty()
+            self.__init_from_existing()
 
-    def init_empty(self):
+    # Initialisations
+    def __init_empty(self):
         query = "/data"
-        r = requests.post(self.client.url + query, json=self.xp)
+        r = requests.post(self.client.url + query, json=self.xp_name)
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
-    def init_from_file(self, zip_file, force=False):
+    def __init_from_existing(self):
+        query = "/data?xp={}".format(self.xp_name)
+        r = requests.get(self.client.url + query)
+        if not r.ok:
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
+        # Retrieve the current step for existing metrics
+        content = json.loads(r.text)
+        self.__update_steps(content["scalars"],
+                            self.scalar_steps,
+                            self.get_scalar_values)
+        self.__update_steps(content["histograms"],
+                            self.hist_steps,
+                            self.get_histogram_values)
+
+    def __init_from_file(self, zip_file, force=False):
         query = "/backup?xp={}&force={}".format(
-            self.xp, force)
+            self.xp_name, force)
         fileobj = open(zip_file, 'rb')
         r = requests.post(self.client.url + query, data={"mysubmit": "Go"},
                           files={"archive": ("backup.zip", fileobj)})
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
+
+    # Scalar methods
+    def get_scalar_list(self):
+        return self.__get_name_list("scalars")
 
     def add_scalar_value(self, name, value, wall_time=-1, step=-1):
         if wall_time == -1:
@@ -76,27 +116,31 @@ class CrayonExperiment(object):
             self.scalar_steps[name] += 1
         else:
             self.scalar_steps[name] = step + 1
-        query = "/data/scalars?xp={}&name={}".format(self.xp, name)
+        query = "/data/scalars?xp={}&name={}".format(self.xp_name, name)
         data = [wall_time, step, value]
         r = requests.post(self.client.url + query, json=data)
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
-    def add_scalars_values(self, data, wall_time=-1, step=-1):
+    def add_scalar_batch(self, data, wall_time=-1, step=-1):
         for name, value in data.iteritems():
             if not isinstance(name, str):
                 msg = "Scalar name should be a string, got: {}.".format(name)
                 raise ValueError(msg)
             self.add_scalar_value(name, value, wall_time, step)
 
-    def get_scalars(self, name):
-        query = "/data/scalars?xp={}&name={}".format(self.xp, name)
+    def get_scalar_values(self, name):
+        query = "/data/scalars?xp={}&name={}".format(self.xp_name, name)
         r = requests.get(self.client.url + query)
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
         return json.loads(r.text)
 
-    def add_histogram(self, name, hist, tobuild=False, wall_time=-1, step=-1):
+    # Histogram methods
+    def get_histogram_list(self):
+        return self.__get_name_list("histograms")
+
+    def add_histogram_value(self, name, hist, tobuild=False, wall_time=-1, step=-1):
         if wall_time == -1:
             wall_time = time.time()
         if step == -1:
@@ -105,37 +149,25 @@ class CrayonExperiment(object):
         else:
             self.scalar_steps[name] = step
         if not tobuild and (not isinstance(hist, dict)
-                        or not self.check_histogram_data(hist, tobuild)):
+                        or not self.__check_histogram_data(hist, tobuild)):
             raise ValueError("Data was not provided in a valid format!")
         if tobuild and (not isinstance(hist, list)):
             raise ValueError("Data was not provided in a valid format!")
         query = "/data/histograms?xp={}&name={}&tobuild={}".format(
-            self.xp, name, tobuild)
+            self.xp_name, name, tobuild)
         data = [wall_time, step, hist]
         r = requests.post(self.client.url + query, json=data)
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
-    def get_histograms(self, name):
-        query = "/data/histograms?xp={}&name={}".format(self.xp, name)
+    def get_histogram_values(self, name):
+        query = "/data/histograms?xp={}&name={}".format(self.xp_name, name)
         r = requests.get(self.client.url + query)
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
         return json.loads(r.text)
 
-    def get_data(self, filename=None):
-        query = "/backup?xp={}".format(self.xp)
-        r = requests.get(self.client.url + query)
-        if not r.ok:
-            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
-        if not filename:
-            filename = "backup_" + self.xp + "_" + str(time.time())
-        out = open(filename + ".zip", "w")
-        out.write(r.content)
-        out.close()
-        return filename + ".zip"
-
-    def check_histogram_data(self, data, tobuild):
+    def __check_histogram_data(self, data, tobuild):
         # TODO should use a schema here
         # Note: all of these are sorted already
 
@@ -150,3 +182,30 @@ class CrayonExperiment(object):
         ks = sorted(ks)
         return (ks == expected or ks == expected2
                 or ks == expected3 or ks == expected4)
+
+    # Backup methods
+    def to_zip(self, filename=None):
+        query = "/backup?xp={}".format(self.xp_name)
+        r = requests.get(self.client.url + query)
+        if not r.ok:
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
+        if not filename:
+            filename = "backup_" + self.xp_name + "_" + str(time.time())
+        out = open(filename + ".zip", "w")
+        out.write(r.content)
+        out.close()
+        return filename + ".zip"
+
+    # Helper methods
+    def __get_name_list(self, element_type):
+        query = "/data?xp={}".format(self.xp_name)
+        r = requests.get(self.client.url + query)
+        if not r.ok:
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
+        return json.loads(r.text)[element_type]
+
+    def __update_steps(self, elements, steps_table, eval_function):
+        for element in elements:
+            values = eval_function(element)
+            if len(values) > 0:
+                steps_table[element] = values[-1][1] + 1

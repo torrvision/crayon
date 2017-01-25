@@ -1,20 +1,28 @@
 API specification
 ============
 
+## API version
+  * GET `/`
+    * Check that the server runs properly and return running version
+    * return: a string containing the running version of the server
+
 ## Experience management
   * GET `/data`
     * Get the list of running experiments
     * return: a json list of name of all the running experiments
-
-  * POST `/data`
-    * Add a new experiment
-    * post content: a string with the name of the new experiment
 
   * GET `/data?xp=foo`
     * Get the informations about the experiment `foo`
     * return: a json dictionnary with the following entries:
       * `scalars`: the name of all the scalar data entries
       * `histograms`: the name of all the histogram data entries
+
+  * POST `/data`
+    * Add a new experiment
+    * post content: a string with the name of the new experiment
+
+  * DELETE '/data?xp=foo'
+    * Delete the experiment named `foo`. Impossible to cancel!
 
 ## Scalar data
   * POST `/data/scalars?xp=foo&name=bar`

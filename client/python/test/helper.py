@@ -1,5 +1,6 @@
 import time
 import docker
+import requests
 
 
 class Helper(object):
@@ -16,8 +17,19 @@ class Helper(object):
                    server_ip: server_ip},
             detach=True,
             name=name)
-        # TODO how do we do this properly?
-        time.sleep(2)
+        # check server is working
+        running = False
+        retry = 20
+        while not running:
+            try:
+                assert(requests.get("http://localhost:"+str(server_ip)).ok)
+                running = True
+            except:
+                retry -= 1
+                if retry == 0:
+                    # The test will trigger the not running server error
+                    return
+                time.sleep(0.1)
 
     def kill(self):
         self.container.kill()

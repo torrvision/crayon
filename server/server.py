@@ -5,6 +5,9 @@ app = Flask("crayonserver")
 # HTTP client to use the tensorboard api
 import urllib2
 
+# Server version
+__version__ = "0.3"
+
 # Not-supported logging types
 not_supported_types = [
   "audio",
@@ -36,6 +39,11 @@ def tb_get_xp_writer(experiment):
   xp_writers[experiment] = writer
   return writer
 
+def tb_remove_xp_writer(experiment):
+  # If the experiment does not exist, does nothing silently
+  if experiment in xp_writers:
+    del xp_writers[experiment]
+
 def tb_xp_writer_exists(experiment):
   return experiment in xp_writers
 
@@ -57,12 +65,12 @@ def tb_add_histogram(experiment, name, wall_time, step, histo):
   writer.add_event(event)
   writer.flush()
 
-def tb_request(type, run=None, tag=None):
+def tb_request(query_type, run=None, tag=None):
   request_url = "http://localhost:8888/data/{}"
   if run and tag:
     request_url += "?run={}&tag={}"
 
-  request_url = request_url.format(type, run, tag)
+  request_url = request_url.format(query_type, run, tag)
   try:
     return urllib2.urlopen(request_url, timeout=1).read()
   except:
@@ -116,6 +124,20 @@ def wrong_argument(message):
   print("wrong_argument: ", message)
   return message, 400
 
+### Running and version check
+@app.route('/', methods=["GET"])
+def get_version():
+  # Verify that tensorboard is running
+  req_res = tb_request("logdir")
+  if not isinstance(req_res, str):
+    return req_res
+
+  if not json.loads(req_res)["logdir"] == tensorboard_folder[:-3]:
+    return wrong_argument("Tensorboard is not running in the correct folder.")
+
+  return __version__
+
+
 ### Experience management
 @app.route('/data', methods=["GET"])
 def get_all_experiments():
@@ -137,10 +159,10 @@ def get_all_experiments():
           del result[not_supported_type]
       result = json.dumps(result)
     else:
-      return wrong_argument("Unknown experiment name '{}'".format(experiment))
+      return wrong_argument("No data associated to experiment '{}'".format(experiment))
   else:
     result = json.dumps(tb_data.keys())
-  return result 
+  return result
 
 @app.route('/data', methods=["POST"])
 def post_experiment():
@@ -154,6 +176,21 @@ def post_experiment():
   tb_get_xp_writer(experiment)
   return "ok"
 
+@app.route('/data', methods=["DELETE"])
+def delete_experiment():
+  experiment = request.args.get('xp')
+
+  if not tb_xp_writer_exists(experiment):
+    return wrong_argument("'{}' experiment does not already exists".format(experiment))
+
+  # Delete folder on disk
+  folder_path = tensorboard_folder.format(experiment)
+  shutil.rmtree(folder_path)
+
+  # Delete experience writer
+  tb_remove_xp_writer(experiment)
+
+  return "ok"
 
 ### Scalar data
 @app.route('/data/scalars', methods=["GET"])
@@ -162,17 +199,19 @@ def get_scalars():
   name = request.args.get('name')
   if (not experiment) or (not name):
     return wrong_argument("xp and name arguments are required")
+  if not tb_xp_writer_exists(experiment):
+    return wrong_argument("Unknown experiment name '{}'".format(experiment))
 
   return tb_request("scalars", experiment, name)
 
 @app.route('/data/scalars', methods=['POST'])
 def post_scalars():
   experiment = request.args.get('xp')
-  if not tb_xp_writer_exists(experiment):
-    return wrong_argument("Unknown experiment name '{}'".format(experiment))
   name = request.args.get('name')
   if (not experiment) or (not name):
     return wrong_argument("xp and name arguments are required")
+  if not tb_xp_writer_exists(experiment):
+    return wrong_argument("Unknown experiment name '{}'".format(experiment))
 
   data = request.get_json()
   if not data:
@@ -196,18 +235,20 @@ def get_histograms():
   name = request.args.get('name')
   if (not experiment) or (not name):
     return wrong_argument("xp and name arguments are required")
+  if not tb_xp_writer_exists(experiment):
+    return wrong_argument("Unknown experiment name '{}'".format(experiment))
 
   return tb_request("histograms", experiment, name)
 
 @app.route('/data/histograms', methods=['POST'])
 def post_histograms():
   experiment = request.args.get('xp')
-  if not tb_xp_writer_exists(experiment):
-    return wrong_argument("Unknown experiment name '{}'".format(experiment))
   name = request.args.get('name')
   to_build = request.args.get('tobuild')
   if (not experiment) or (not name) or (not to_build):
     return wrong_argument("xp, name and tobuild arguments are required")
+  if not tb_xp_writer_exists(experiment):
+    return wrong_argument("Unknown experiment name '{}'".format(experiment))
   to_build = to_build.lower() == "true"
 
   data = request.get_json()
@@ -262,7 +303,7 @@ def get_backup():
   if not path.isdir(folder_path):
     return wrong_argument("Requested experiment '{}' does not exist".format(experiment))
 
-  zip_file = shutil.make_archive("/tmp/{}.zip".format(experiment), 'zip', folder_path)
+  zip_file = shutil.make_archive("/tmp/{}".format(experiment), 'zip', folder_path)
 
   return send_file(zip_file, mimetype='application/zip')
 
@@ -274,19 +315,23 @@ def post_backup():
     return wrong_argument("xp and force argument are required")
   if not force.lower() == 'true':
     return wrong_argument("Force must be set to 1 to be able to override a folder")
+  if tb_xp_writer_exists(experiment):
+    return wrong_argument("Experiment '{}' already exists".format(experiment))
 
   folder_path = tensorboard_folder.format(experiment)
 
-  if path.isdir(folder_path):
-    shutil.move(folder_path, "/tmp/backup_{}.old".format(experiment))
+  if "archive" not in request.files:
+    return wrong_argument("No file provided or not named 'archive'")
 
   zip_file_path = "/tmp/{}.zip".format(experiment)
-  with open(zip_file_path, 'w') as zip_file:
-    zip_file.write(request.data)
+  backup_data = request.files["archive"]
+  backup_data.save(zip_file_path)
 
   folder_path = tensorboard_folder.format(experiment)
   Popen("mkdir -p {}".format(folder_path),stdout=PIPE, shell=True)
   Popen("cd {}; unzip {}".format(folder_path, zip_file_path),stdout=PIPE, shell=True)
+
+  tb_get_xp_writer(experiment)
 
   return "ok"
 
