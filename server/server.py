@@ -20,6 +20,7 @@ not_supported_types = [
 # Tensorboard includes
 import tensorflow as tf
 import bisect
+import time
 
 # Backup includes
 from os import path
@@ -29,6 +30,24 @@ import shutil
 
 ### Tensorboard utility functions
 tensorboard_folder = "/tmp/tensorboard/{}"
+# Make sure we do not access data too fast
+xp_modified = {}
+def tb_modified_xp(experiment):
+  xp_modified[experiment] = time.time()
+
+def tb_access_xp(experiment):
+  if experiment not in xp_modified:
+    return
+  last_modified = xp_modified[experiment]
+  while time.time() < last_modified + 1:
+    time.sleep(0.01)
+  del xp_modified[experiment]
+
+def tb_access_all():
+  for experiment in xp_modified.keys():
+    tb_access_xp(experiment)
+
+# Make sure we have writers for all experiments
 xp_writers = {}
 def tb_get_xp_writer(experiment):
   if experiment in xp_writers:
@@ -37,6 +56,7 @@ def tb_get_xp_writer(experiment):
   xp_folder = tensorboard_folder.format(experiment)
   writer = tf.summary.FileWriter(xp_folder, flush_secs=1)
   xp_writers[experiment] = writer
+  tb_modified_xp(experiment)
   return writer
 
 def tb_remove_xp_writer(experiment):
@@ -47,6 +67,7 @@ def tb_remove_xp_writer(experiment):
 def tb_xp_writer_exists(experiment):
   return experiment in xp_writers
 
+# Use writers
 def tb_add_scalar(experiment, name, wall_time, step, value):
   writer = tb_get_xp_writer(experiment)
   summary = tf.Summary(value=[
@@ -55,6 +76,7 @@ def tb_add_scalar(experiment, name, wall_time, step, value):
   event = tf.Event(wall_time=wall_time, step=step, summary=summary)
   writer.add_event(event)
   writer.flush()
+  tb_modified_xp(experiment)
 
 def tb_add_histogram(experiment, name, wall_time, step, histo):
   writer = tb_get_xp_writer(experiment)
@@ -64,11 +86,18 @@ def tb_add_histogram(experiment, name, wall_time, step, histo):
   event = tf.Event(wall_time=wall_time, step=step, summary=summary)
   writer.add_event(event)
   writer.flush()
+  tb_modified_xp(experiment)
 
+# Perform requests to tensorboard http api
 def tb_request(query_type, run=None, tag=None):
   request_url = "http://localhost:8888/data/{}"
   if run and tag:
     request_url += "?run={}&tag={}"
+
+  if run:
+    tb_access_xp(run)
+  else:
+    tb_access_all()
 
   request_url = request_url.format(query_type, run, tag)
   try:
