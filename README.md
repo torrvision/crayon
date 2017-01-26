@@ -39,7 +39,7 @@ $ docker run -d -p 8888:8888 -p 8889:8889 --name crayon alband/crayon
 ```
 
 Tensorboard is now accessible on a browser at `server_machine_address:8888`.
-The client should send the datas at `server_machine_address:8889`.
+The client should send the data at `server_machine_address:8889`.
 
 
 ### Client

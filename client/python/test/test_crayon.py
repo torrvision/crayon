@@ -78,21 +78,21 @@ class CrayonClientTestSuite(unittest.TestCase):
         self.assertRaises(ValueError, foo.add_scalar_value,
                           "", 2)
 
-    def test_add_scalar_batch(self):
+    def test_add_scalar_dict(self):
         cc = CrayonClient()
         foo = cc.create_experiment("foo")
         data = {"fizz": 3, "buzz": 5}
-        foo.add_scalar_batch(data, wall_time=0, step=5)
+        foo.add_scalar_dict(data, wall_time=0, step=5)
         data = {"fizz": 6, "buzz": 10}
-        foo.add_scalar_batch(data)
+        foo.add_scalar_dict(data)
 
-    def test_add_scalar_batch_wrong_data(self):
+    def test_add_scalar_dict_wrong_data(self):
         cc = CrayonClient()
         foo = cc.create_experiment("foo")
         data = {"fizz": "foo", "buzz": 5}
-        self.assertRaises(ValueError, foo.add_scalar_batch, data)
+        self.assertRaises(ValueError, foo.add_scalar_dict, data)
         data = {3: 6, "buzz": 10}
-        self.assertRaises(ValueError, foo.add_scalar_batch, data)
+        self.assertRaises(ValueError, foo.add_scalar_dict, data)
 
     def test_get_scalar_values_no_data(self):
         cc = CrayonClient()
@@ -135,26 +135,26 @@ class CrayonClientTestSuite(unittest.TestCase):
         time.sleep(1)
         self.assertRaises(ValueError, foo.get_scalar_values,"")
 
-    def test_add_scalar_batch(self):
+    def test_add_scalar_dict(self):
         cc = CrayonClient()
         foo = cc.create_experiment("foo")
         data = {"fizz": 3, "buzz": 5}
-        foo.add_scalar_batch(data, wall_time=0, step=5)
+        foo.add_scalar_dict(data, wall_time=0, step=5)
         data = {"fizz": 6, "buzz": 10}
-        foo.add_scalar_batch(data, wall_time=1)
+        foo.add_scalar_dict(data, wall_time=1)
         time.sleep(1)
         self.assertEqual(foo.get_scalar_values("fizz"),
                          [[0.0, 5, 3.0], [1.0, 6, 6.0]])
         self.assertEqual(foo.get_scalar_values("buzz"),
                          [[0.0, 5, 5.0], [1.0, 6, 10.0]])
 
-    def test_get_scalar_list(self):
+    def test_get_scalar_names(self):
         cc = CrayonClient()
         foo = cc.create_experiment("foo")
         foo.add_scalar_value("fizz", 0, wall_time=0)
         foo.add_scalar_value("buzz", 0, wall_time=0)
         time.sleep(1)
-        self.assertEqual(sorted(foo.get_scalar_list()),
+        self.assertEqual(sorted(foo.get_scalar_names()),
                          sorted(["fizz", "buzz"]))
 
     # Histograms
@@ -295,7 +295,7 @@ class CrayonClientTestSuite(unittest.TestCase):
         time.sleep(1)
         self.assertRaises(ValueError, foo.get_histogram_values, "")
 
-    def test_get_histogram_list(self):
+    def test_get_histogram_names(self):
         cc = CrayonClient()
         foo = cc.create_experiment("foo")
         data = {"min": 0,
@@ -306,7 +306,7 @@ class CrayonClientTestSuite(unittest.TestCase):
         foo.add_histogram_value("fizz", data, wall_time=0, step=0)
         foo.add_histogram_value("buzz", data, wall_time=1, step=1)
         time.sleep(1)
-        self.assertEqual(sorted(foo.get_histogram_list()),
+        self.assertEqual(sorted(foo.get_histogram_names()),
                          sorted(["fizz", "buzz"]))
 
     # Only checks that we get a zip file.

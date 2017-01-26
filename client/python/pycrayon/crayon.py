@@ -105,7 +105,7 @@ class CrayonExperiment(object):
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
     # Scalar methods
-    def get_scalar_list(self):
+    def get_scalar_names(self):
         return self.__get_name_list("scalars")
 
     def add_scalar_value(self, name, value, wall_time=-1, step=-1):
@@ -122,7 +122,7 @@ class CrayonExperiment(object):
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
-    def add_scalar_batch(self, data, wall_time=-1, step=-1):
+    def add_scalar_dict(self, data, wall_time=-1, step=-1):
         for name, value in data.iteritems():
             if not isinstance(name, str):
                 msg = "Scalar name should be a string, got: {}.".format(name)
@@ -137,7 +137,7 @@ class CrayonExperiment(object):
         return json.loads(r.text)
 
     # Histogram methods
-    def get_histogram_list(self):
+    def get_histogram_names(self):
         return self.__get_name_list("histograms")
 
     def add_histogram_value(self, name, hist, tobuild=False, wall_time=-1, step=-1):

@@ -54,8 +54,8 @@ cc.remove_experiment("foo")
 # Create a new experiment based on foo's backup
 bar = cc.create_experiment("bar", zip_file=filename)
 
-# Get the data points for this experiment
-bar.get_scalar_list()
+# Get the name of all scalar plots in this experiment
+bar.get_scalar_names()
 #>> ["accuracy"]
 
 # Get the datas for this experiment
@@ -89,14 +89,14 @@ foo.get_scalar_values("accuracy")
 
 * Creation: can only be created by the `CrayonClient`
 
-* `get_scalar_list()`
+* `get_scalar_names()`
   * Returns a list of string containing the name of all the scalar values in this experiment.
 
 * `add_scalar_value(name, value, wall_time=-1, step=-1`
   * Adds a new point with value `value` to the scalar plot named `name`.
   * If not specified, the `wall_time` will be set to the current time and the `step` to the step of the previous point with this name plus one (or `0` if its the first point with this name).
 
-* `add_scalar_batch(data, wall_time=-1, step=-1`
+* `add_scalar_dict(data, wall_time=-1, step=-1`
   * Add multiple points at the same times where `data` is a dictionary where each key is a scalar name and the associated value the value to add for this scalar plot.
   * `wall_time` and `step` are handled the same as for `add_scalar_value` for each entry independently.
 
@@ -104,7 +104,7 @@ foo.get_scalar_values("accuracy")
   * Return a list with one entry for each point added for this scalar plot.
   * Each entry is a list containing [wall_time, step, value]. 
 
-* `get_histogram_list()`
+* `get_histogram_names()`
   * Returns a list of string containing the name of all the histogram values in this experiment.
 
 * `add_histogram_value(name, hist, tobuild=False, wall_time=-1, step=-1`
