@@ -21,7 +21,7 @@ class Helper(object):
             name=name)
         # check server is working
         running = False
-        retry = 20
+        retry = 40
         while not running:
             try:
                 assert(requests.get("http://localhost:"+str(server_ip)).ok)
