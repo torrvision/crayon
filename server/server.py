@@ -53,6 +53,7 @@ def tb_get_xp_writer(experiment):
   if experiment in xp_writers:
     return xp_writers[experiment]
 
+  tb_access_xp(experiment)
   xp_folder = tensorboard_folder.format(experiment)
   writer = tf.summary.FileWriter(xp_folder, flush_secs=1)
   xp_writers[experiment] = writer
@@ -63,6 +64,8 @@ def tb_remove_xp_writer(experiment):
   # If the experiment does not exist, does nothing silently
   if experiment in xp_writers:
     del xp_writers[experiment]
+    # Prevent recreating it too quickly
+    tb_access_xp(experiment)
 
 def tb_xp_writer_exists(experiment):
   return experiment in xp_writers
