@@ -8,7 +8,6 @@ setup(name='pycrayon',
       packages=['pycrayon'],
       version=__version__,
       install_requires=[
-        "docker",
         "requests"
       ]
      )

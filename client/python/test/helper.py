@@ -1,7 +1,9 @@
 import time
-import docker
 import requests
-
+try:
+    import docker
+except:
+    RuntimeError("Please run 'pip install docker' before using this module.")
 
 class Helper(object):
 
