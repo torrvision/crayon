@@ -17,6 +17,11 @@ not_supported_types = [
   "meta_graph",
   "run_metadata"]
 
+# Supported logging types
+supported_types = [
+  "scalars",
+  "histograms"]
+
 # Tensorboard includes
 import tensorflow as tf
 import bisect
@@ -189,12 +194,15 @@ def get_all_experiments():
       for not_supported_type in not_supported_types:
         if not_supported_type in result:
           del result[not_supported_type]
-      result = json.dumps(result)
     else:
-      return wrong_argument("No data associated to experiment '{}'".format(experiment))
+      # Experience with no data on tensorboard,
+      # return empty list for all types
+      result = {}
+      for t in supported_types:
+        result[t] = []
   else:
-    result = json.dumps(tb_data.keys())
-  return result
+    result = tb_data.keys()
+  return json.dumps(result)
 
 @app.route('/data', methods=["POST"])
 def post_experiment():
