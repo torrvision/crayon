@@ -33,6 +33,13 @@ from subprocess import Popen, PIPE
 from flask import send_file
 import shutil
 
+def to_unicode(experiment):
+
+  assert isinstance(experiment, basestring)
+
+  return unicode(experiment)
+
+
 ### Tensorboard utility functions
 tensorboard_folder = "/tmp/tensorboard/{}"
 # Make sure we do not access data too fast
@@ -70,7 +77,7 @@ def tb_remove_xp_writer(experiment):
   if experiment in xp_writers:
     del xp_writers[experiment]
     # Prevent recreating it too quickly
-    tb_access_xp(experiment)
+    tb_modified_xp(experiment)
 
 def tb_xp_writer_exists(experiment):
   return experiment in xp_writers
@@ -166,8 +173,10 @@ def wrong_argument(message):
 def get_version():
   # Verify that tensorboard is running
   req_res = tb_request("logdir")
-  if not isinstance(req_res, str):
-    return req_res
+  try:
+    req_res = to_unicode(req_res)
+  except TypeError:
+    return wrong_argument("'logdir' should be of type string or unicode instead of '{}'".format(type(req_res)))
 
   if not json.loads(req_res)["logdir"] == tensorboard_folder[:-3]:
     return wrong_argument("Tensorboard is not running in the correct folder.")
@@ -179,6 +188,10 @@ def get_version():
 @app.route('/data', methods=["GET"])
 def get_all_experiments():
   experiment = request.args.get('xp')
+  try:
+    experiment = to_unicode(experiment)
+  except TypeError:
+    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
 
   result = ""
   req_res = tb_request("runs")
@@ -206,9 +219,11 @@ def get_all_experiments():
 
 @app.route('/data', methods=["POST"])
 def post_experiment():
-  experiment = str(request.get_json()) # Is unicode otherwise
-  if not experiment:
-    return wrong_argument("post content is not a string but '{}'".format(type(experiment)))
+  experiment = request.get_json()
+  try:
+    experiment = to_unicode(experiment)
+  except TypeError:
+    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
 
   if tb_xp_writer_exists(experiment):
     return wrong_argument("'{}' experiment already exists".format(experiment))
@@ -219,6 +234,10 @@ def post_experiment():
 @app.route('/data', methods=["DELETE"])
 def delete_experiment():
   experiment = request.args.get('xp')
+  try:
+    experiment = to_unicode(experiment)
+  except TypeError:
+    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
 
   if not tb_xp_writer_exists(experiment):
     return wrong_argument("'{}' experiment does not already exists".format(experiment))
@@ -236,6 +255,10 @@ def delete_experiment():
 @app.route('/data/scalars', methods=["GET"])
 def get_scalars():
   experiment = request.args.get('xp')
+  try:
+    experiment = to_unicode(experiment)
+  except TypeError:
+    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   if (not experiment) or (not name):
     return wrong_argument("xp and name arguments are required")
@@ -247,6 +270,10 @@ def get_scalars():
 @app.route('/data/scalars', methods=['POST'])
 def post_scalars():
   experiment = request.args.get('xp')
+  try:
+    experiment = to_unicode(experiment)
+  except TypeError:
+    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   if (not experiment) or (not name):
     return wrong_argument("xp and name arguments are required")
@@ -272,6 +299,10 @@ def post_scalars():
 @app.route('/data/histograms', methods=["GET"])
 def get_histograms():
   experiment = request.args.get('xp')
+  try:
+    experiment = to_unicode(experiment)
+  except TypeError:
+    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   if (not experiment) or (not name):
     return wrong_argument("xp and name arguments are required")
@@ -283,6 +314,10 @@ def get_histograms():
 @app.route('/data/histograms', methods=['POST'])
 def post_histograms():
   experiment = request.args.get('xp')
+  try:
+    experiment = to_unicode(experiment)
+  except TypeError:
+    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   to_build = request.args.get('tobuild')
   if (not experiment) or (not name) or (not to_build):
@@ -335,6 +370,10 @@ def post_histograms():
 @app.route('/backup', methods=['GET'])
 def get_backup():
   experiment = request.args.get('xp')
+  try:
+    experiment = to_unicode(experiment)
+  except TypeError:
+    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   if not experiment:
     return wrong_argument("xp argument is required")
 
@@ -350,6 +389,10 @@ def get_backup():
 @app.route('/backup', methods=['POST'])
 def post_backup():
   experiment = request.args.get('xp')
+  try:
+    experiment = to_unicode(experiment)
+  except TypeError:
+    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   force = request.args.get('force')
   if (not experiment) or (not force):
     return wrong_argument("xp and force argument are required")
