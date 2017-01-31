@@ -58,7 +58,7 @@ bar = cc.create_experiment("bar", zip_file=filename)
 bar.get_scalar_names()
 #>> ["accuracy"]
 
-# Get the datas for this experiment
+# Get the data for this experiment
 foo.get_scalar_values("accuracy")
 #>> [[11.3, 0, 0.0], [12.3, 1, 4.0], [13.3, 4, 6.0]])
 ```
@@ -70,7 +70,7 @@ foo.get_scalar_values("accuracy")
 * Creation: `CrayonClient(hostname="localhost", port=8889)`
   * Create a client object and connect it to the server at address `hostname` and port `port`.
 
-* `get_experiment_list()`
+* `get_experiment_names()`
   * Returns a list of string containing the name of all the experiments on the server.
 
 * `create_experiment(xp_name, zip_file=None)`
@@ -78,11 +78,15 @@ foo.get_scalar_values("accuracy")
   * If `zip_file` is provided, this experiment is initialized with the content of the zip file (see `CrayonExperiment.to_zip` to get the zip file).
 
 * `open_experiment(xp_name)`
-  * Opens the experiment called `xp_name` that already exist on the server.
+  * Opens the experiment called `xp_name` that already exists on the server.
 
 * `remove_experiment(xp_name)`
   * Removes the experiment `xp_name` from the server.
-  * WARNING: all the elements in this experiment are definitively lost!
+  * WARNING: all elements from this experiment are permanently lost!
+
+* `remove_all_experiments()`
+  * Removes all experiment from the server.
+  * WARNING: all elements from all experiments are permanently lost!
 
 
 ### `CrayonExperiment`
@@ -102,7 +106,7 @@ foo.get_scalar_values("accuracy")
 
 * `get_scalar_values(name)`
   * Return a list with one entry for each point added for this scalar plot.
-  * Each entry is a list containing [wall_time, step, value]. 
+  * Each entry is a list containing [wall_time, step, value].
 
 * `get_histogram_names()`
   * Returns a list of string containing the name of all the histogram values in this experiment.
