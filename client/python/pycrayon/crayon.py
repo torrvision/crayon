@@ -5,6 +5,10 @@ import collections
 
 __version__ = "0.3"
 
+try:
+  basestring
+except NameError:
+  basestring = str
 
 class CrayonClient(object):
 
@@ -33,7 +37,7 @@ class CrayonClient(object):
                                                           self.port) +
                              " does not appear to be up!")
 
-    def get_experiment_list(self):
+    def get_experiment_names(self):
         query = "/data"
         r = requests.get(self.url + query)
         if not r.ok:
@@ -43,19 +47,24 @@ class CrayonClient(object):
         return experiments
 
     def open_experiment(self, xp_name):
-        assert(isinstance(xp_name, str))
+        assert(isinstance(xp_name, basestring))
         return CrayonExperiment(xp_name, self, create=False)
 
     def create_experiment(self, xp_name, zip_file=None):
-        assert(isinstance(xp_name, str))
+        assert(isinstance(xp_name, basestring))
         return CrayonExperiment(xp_name, self, zip_file=zip_file, create=True)
 
     def remove_experiment(self, xp_name):
-        assert(isinstance(xp_name, str))
+        assert(isinstance(xp_name, basestring))
         query = "/data?xp={}".format(xp_name)
         r = requests.delete(self.url + query)
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
+
+    def remove_all_experiments(self):
+        xp_list = self.get_experiment_names()
+        for xp_name in xp_list:
+            self.remove_experiment(xp_name)
 
 class CrayonExperiment(object):
 
@@ -124,7 +133,7 @@ class CrayonExperiment(object):
 
     def add_scalar_dict(self, data, wall_time=-1, step=-1):
         for name, value in data.iteritems():
-            if not isinstance(name, str):
+            if not isinstance(name, basestring):
                 msg = "Scalar name should be a string, got: {}.".format(name)
                 raise ValueError(msg)
             self.add_scalar_value(name, value, wall_time, step)
