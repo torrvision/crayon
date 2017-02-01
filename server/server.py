@@ -118,8 +118,7 @@ def tb_request(query_type, run=None, tag=None):
   try:
     return urllib2.urlopen(request_url, timeout=1).read()
   except:
-    message = "Combination of experiment '{}' and name '{}' does not exist".format(run, tag)
-    return wrong_argument(message)
+    raise ValueError
 
 # Borrowed from tensorflow/tensorboard/scripts/generate_testdata.py
 # Create a histogram from a list of values
@@ -172,11 +171,10 @@ def wrong_argument(message):
 @app.route('/', methods=["GET"])
 def get_version():
   # Verify that tensorboard is running
-  req_res = tb_request("logdir")
   try:
-    req_res = to_unicode(req_res)
-  except TypeError:
-    return wrong_argument("'logdir' should be of type string or unicode instead of '{}'".format(type(req_res)))
+    req_res = tb_request("logdir")
+  except:
+    return wrong_argument("Server: TensorBoard failed to answer request 'logdir'")
 
   if not json.loads(req_res)["logdir"] == tensorboard_folder[:-3]:
     return wrong_argument("Tensorboard is not running in the correct folder.")
@@ -194,9 +192,11 @@ def get_all_experiments():
     return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
 
   result = ""
-  req_res = tb_request("runs")
-  if not isinstance(req_res, str):
-    return req_res
+  try:
+    req_res = tb_request("runs")
+  except:
+    return wrong_argument("Server: TensorBoard failed to answer request 'runs'")
+
   tb_data = json.loads(req_res)
   if experiment:
     if not tb_xp_writer_exists(experiment):
@@ -265,7 +265,14 @@ def get_scalars():
   if not tb_xp_writer_exists(experiment):
     return wrong_argument("Unknown experiment name '{}'".format(experiment))
 
-  return tb_request("scalars", experiment, name)
+  try:
+    req_res = tb_request("scalars", experiment, name)
+    return req_res
+  except:
+    message = "Combination of experiment '{}' and name '{}' does not exist".format(experiment, name)
+    return wrong_argument(message)
+
+
 
 @app.route('/data/scalars', methods=['POST'])
 def post_scalars():
@@ -309,7 +316,14 @@ def get_histograms():
   if not tb_xp_writer_exists(experiment):
     return wrong_argument("Unknown experiment name '{}'".format(experiment))
 
-  return tb_request("histograms", experiment, name)
+  try:
+    req_res = tb_request("histograms", experiment, name)
+    return req_res
+  except:
+    message = "Combination of experiment '{}' and name '{}' does not exist".format(experiment, name)
+    return wrong_argument(message)
+
+
 
 @app.route('/data/histograms', methods=['POST'])
 def post_histograms():
