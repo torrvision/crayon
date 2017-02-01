@@ -110,6 +110,7 @@ class CrayonExperiment(object):
         fileobj = open(zip_file, 'rb')
         r = requests.post(self.client.url + query, data={"mysubmit": "Go"},
                           files={"archive": ("backup.zip", fileobj)})
+        fileobj.close()
         if not r.ok:
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
@@ -132,7 +133,7 @@ class CrayonExperiment(object):
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
 
     def add_scalar_dict(self, data, wall_time=-1, step=-1):
-        for name, value in data.iteritems():
+        for name, value in data.items():
             if not isinstance(name, basestring):
                 msg = "Scalar name should be a string, got: {}.".format(name)
                 raise ValueError(msg)
@@ -200,7 +201,7 @@ class CrayonExperiment(object):
             raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
         if not filename:
             filename = "backup_" + self.xp_name + "_" + str(time.time())
-        out = open(filename + ".zip", "w")
+        out = open(filename + ".zip", "wb")
         out.write(r.content)
         out.close()
         return filename + ".zip"
