@@ -3,18 +3,21 @@ sudo: required
 language: python
 python:
   - '2.7'
+  - '3.5'
 
 services:
   - docker
 
 before_install:
   - pip install docker
+  - pip3 install docker
   - pushd server
   - docker build -t alband/crayon:latest .
   - popd
 script:
   - pushd client/python
   - python -m unittest discover
+  - python3 -m unittest discover
   - popd
 
 before_deploy:
