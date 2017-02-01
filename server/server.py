@@ -186,10 +186,6 @@ def get_version():
 @app.route('/data', methods=["GET"])
 def get_all_experiments():
   experiment = request.args.get('xp')
-  try:
-    experiment = to_unicode(experiment)
-  except TypeError:
-    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
 
   result = ""
   try:
@@ -199,6 +195,10 @@ def get_all_experiments():
 
   tb_data = json.loads(req_res)
   if experiment:
+    try:
+      experiment = to_unicode(experiment)
+    except TypeError:
+      return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
     if not tb_xp_writer_exists(experiment):
       return wrong_argument("Unknown experiment name '{}'".format(experiment))
     if experiment in tb_data:
