@@ -41,7 +41,7 @@ class CrayonClient(object):
         query = "/data"
         r = requests.get(self.url + query)
         if not r.ok:
-            experiments = []
+            raise ValueError("Something went wrong. Server sent: {}.".format(r.text))
         else:
             experiments = json.loads(r.text)
         return experiments
