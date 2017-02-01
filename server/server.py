@@ -35,7 +35,7 @@ import shutil
 
 def to_unicode(experiment):
 
-  assert isinstance(experiment, basestring)
+  assert isinstance(experiment, basestring) and experiment
 
   return unicode(experiment)
 
