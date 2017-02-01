@@ -6,7 +6,7 @@ app = Flask("crayonserver")
 import urllib2
 
 # Server version
-__version__ = "0.3"
+__version__ = "0.4"
 
 # Not-supported logging types
 not_supported_types = [

@@ -3,7 +3,7 @@ import json
 import time
 import collections
 
-__version__ = "0.3"
+__version__ = "0.4"
 
 try:
   basestring
