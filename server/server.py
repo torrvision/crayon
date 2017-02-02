@@ -416,13 +416,17 @@ def post_backup():
     return wrong_argument("Experiment '{}' already exists".format(experiment))
 
   folder_path = tensorboard_folder.format(experiment)
-
-  if "archive" not in request.files:
-    return wrong_argument("No file provided or not named 'archive'")
-
   zip_file_path = "/tmp/{}.zip".format(experiment)
-  backup_data = request.files["archive"]
-  backup_data.save(zip_file_path)
+
+  if "archive" in request.files:
+    backup_data = request.files["archive"]
+    backup_data.save(zip_file_path)
+  else:
+    content_type = request.headers.get('Content-type', '')
+    if (not content_type) or (content_type != "application/zip"):
+      return wrong_argument("Backup post request should contain a file or a zip")
+    with open(zip_file_path, "wb") as f:
+      f.write(request.data)
 
   folder_path = tensorboard_folder.format(experiment)
   Popen("mkdir -p {}".format(folder_path),stdout=PIPE, shell=True)

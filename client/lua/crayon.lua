@@ -97,6 +97,8 @@ do
 
     local json_headers = {}
     json_headers["Content-Type"] = "application/json"
+    local zip_headers = {}
+    zip_headers["Content-Type"] = "application/zip"
 
 
 
@@ -159,8 +161,21 @@ do
     end
 
     __init_from_file = function(self, zip_file, force)
+        local file = io.open(zip_file, "rb")
+        local content = file:read("*all")
+        file:close()
+
         local query = "/backup"
-        error("not implemented")
+        local r = requests.post{
+            url = self.client.url..query,
+            params = {xp=self.xp_name, force=force},
+            data = content,
+            headers = zip_headers
+        }
+        if r.status_code ~= 200 then
+            local msg = "Something went wrong. Server sent: "..r.text.."."
+            error(msg)
+        end
     end
 
     -- Scalar methods
