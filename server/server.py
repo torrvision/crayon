@@ -35,7 +35,7 @@ import shutil
 
 def to_unicode(experiment):
 
-  assert isinstance(experiment, basestring) and experiment
+  assert experiment and isinstance(experiment, basestring)
 
   return unicode(experiment)
 
@@ -197,7 +197,7 @@ def get_all_experiments():
   if experiment:
     try:
       experiment = to_unicode(experiment)
-    except TypeError:
+    except:
       return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
     if not tb_xp_writer_exists(experiment):
       return wrong_argument("Unknown experiment name '{}'".format(experiment))
@@ -222,7 +222,7 @@ def post_experiment():
   experiment = request.get_json()
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
+  except:
     return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
 
   if tb_xp_writer_exists(experiment):
@@ -236,7 +236,7 @@ def delete_experiment():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
+  except:
     return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
 
   if not tb_xp_writer_exists(experiment):
@@ -257,7 +257,7 @@ def get_scalars():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
+  except:
     return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   if (not experiment) or (not name):
@@ -279,7 +279,7 @@ def post_scalars():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
+  except:
     return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   if (not experiment) or (not name):
@@ -308,7 +308,7 @@ def get_histograms():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
+  except:
     return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   if (not experiment) or (not name):
@@ -330,7 +330,7 @@ def post_histograms():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
+  except:
     return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   to_build = request.args.get('tobuild')
@@ -386,7 +386,7 @@ def get_backup():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
+  except:
     return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   if not experiment:
     return wrong_argument("xp argument is required")
@@ -405,7 +405,7 @@ def post_backup():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
+  except:
     return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
   force = request.args.get('force')
   if (not experiment) or (not force):

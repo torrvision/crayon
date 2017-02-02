@@ -7,24 +7,27 @@ except:
 
 class Helper(object):
 
-    def __init__(self, start=True):
+    def __init__(self, start=True, tb_ip=8888, server_ip=8889, name="crayon"):
         self.client = docker.from_env()
+        self.tb_ip = tb_ip
+        self.server_ip = server_ip
+        self.name = name
         if start:
             self.start()
 
-    def start(self, tb_ip=8888, server_ip=8889, name="crayon"):
+    def start(self):
         self.container = self.client.containers.run(
             "alband/crayon:latest",
-            ports={tb_ip: tb_ip,
-                   server_ip: server_ip},
+            ports={8888: self.tb_ip,
+                   8889: self.server_ip},
             detach=True,
-            name=name)
+            name=self.name)
         # check server is working
         running = False
-        retry = 40
+        retry = 50
         while not running:
             try:
-                assert(requests.get("http://localhost:"+str(server_ip)).ok)
+                assert(requests.get("http://localhost:"+str(self.server_ip)).ok)
                 running = True
             except:
                 retry -= 1
