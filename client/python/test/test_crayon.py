@@ -11,9 +11,13 @@ class CrayonClientTestSuite(unittest.TestCase):
         super(CrayonClientTestSuite, self).__init__(*args, **kwargs)
         self.test_server_port = 8886
         self.test_tb_port = 8887
+        self.container_name = "crayon_test_python"
 
     def setUp(self):
-        self.h = Helper(tb_ip=self.test_tb_port, server_ip=self.test_server_port)
+        self.h = Helper(
+            tb_ip=self.test_tb_port,
+            server_ip=self.test_server_port,
+            name=self.container_name)
 
     def tearDown(self):
         self.h.kill_remove()
