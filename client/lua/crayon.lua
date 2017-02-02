@@ -307,6 +307,8 @@ do
         local f = io.open(filename, "w")
         f:write(r.text)
         f:close()
+
+        return filename
     end
 
     -- helper methods

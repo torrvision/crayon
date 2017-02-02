@@ -7,8 +7,7 @@ source = {
 
 description = {
   summary = "A lua client for crayon.",
-  homepage = "https://github.com/torrvision/crayon",
-  licence = "MIT"
+  homepage = "https://github.com/torrvision/crayon"
 }
 
 dependencies = {

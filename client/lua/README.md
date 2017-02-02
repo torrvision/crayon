@@ -19,12 +19,94 @@ $ luarocks make
 Run:
 
 ```bash
-$
+# Start new test server
+$ docker run -d -p 7998:8888 -p 7999:8889 --name crayon_lua_test alband/crayon
+
+# Run test script
+$ lua(jit) test.lua
+
+# Remove test server
+$ docker rm -f crayon_lua_test
 ```
 
 ## Usage example
 
 ```lua
+local crayon = require("crayon")
+
+--  Connect to the server
+local cc = crayon.CrayonClient("server_machine_address")
+
+--  Create a new experiment
+local foo = cc:create_experiment("foo")
+
+--  Send some scalar values to the server with their time
+foo:add_scalar_value("accuracy", 0, 11.3)
+foo:add_scalar_value("accuracy", 4, 12.3)
+--  You can force the step value also
+foo:add_scalar_value("accuracy", 6, 13.3, 4)
+
+--  Get the datas sent to the server
+foo:get_scalar_values("accuracy")
+-- >> {
+--   1 :
+--     {
+--       1 : 11.3
+--       2 : 0
+--       3 : 0
+--     }
+--   2 :
+--     {
+--       1 : 12.3
+--       2 : 1
+--       3 : 4
+--     }
+--   3 :
+--     {
+--       1 : 13.3
+--       2 : 4
+--       3 : 6
+--     }
+-- }
+
+--  backup this experiment as a zip file
+local filename = foo:to_zip()
+
+--  delete this experiment from the server
+cc:remove_experiment("foo")
+--  using the `foo` object from now on will result in an error
+
+--  Create a new experiment based on foo's backup
+local bar = cc:create_experiment("bar", filename)
+
+--  Get the name of all scalar plots in this experiment
+bar:get_scalar_names()
+-- >> {
+--   1 : "accuracy"
+-- }
+
+--  Get the data for this experiment
+bar:get_scalar_values("accuracy")
+-- >> {
+--   1 :
+--     {
+--       1 : 11.3
+--       2 : 0
+--       3 : 0
+--     }
+--   2 :
+--     {
+--       1 : 12.3
+--       2 : 1
+--       3 : 4
+--     }
+--   3 :
+--     {
+--       1 : 13.3
+--       2 : 4
+--       3 : 6
+--     }
+-- }
 
 ```
 

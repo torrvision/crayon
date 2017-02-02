@@ -59,7 +59,7 @@ bar.get_scalar_names()
 #>> ["accuracy"]
 
 # Get the data for this experiment
-foo.get_scalar_values("accuracy")
+bar.get_scalar_values("accuracy")
 #>> [[11.3, 0, 0.0], [12.3, 1, 4.0], [13.3, 4, 6.0]])
 ```
 
