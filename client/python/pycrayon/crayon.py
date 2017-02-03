@@ -34,7 +34,7 @@ class CrayonClient(object):
 
         except requests.ConnectionError:
             msg = "The server at {}:{} does not appear to be up!"
-            raise ValueError(msg.format(self.hostname))
+            raise ValueError(msg.format(self.hostname, self.port))
 
     def get_experiment_names(self):
         query = "/data"
