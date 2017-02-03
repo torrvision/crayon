@@ -15,7 +15,7 @@ before_install:
   - popd
 script:
   - pushd client/python
-  - python -m unittest discover
+  - python -Wignore -m unittest discover
   - popd
 
 before_deploy:
