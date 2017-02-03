@@ -1,17 +1,17 @@
-# [`pycrayon`](https://pypi.python.org/pypi/pycrayon)
+# `crayon`
 
-This is the python client for the crayon package.
+This is the lua client for the crayon package.
 
 ## Install
 
-* From pip:
+* From luarocks:
 ```bash
-$ pip install pycrayon
+$ luarocks install crayon
 ```
 
 * From source:
 ```bash
-$ python setup.py install
+$ luarocks make
 ```
 
 ## Testing
@@ -19,48 +19,95 @@ $ python setup.py install
 Run:
 
 ```bash
-$ python -m unittest discover
+# Start new test server
+$ docker run -d -p 7998:8888 -p 7999:8889 --name crayon_lua_test alband/crayon
+
+# Run test script
+$ lua(jit) test.lua
+
+# Remove test server
+$ docker rm -f crayon_lua_test
 ```
 
 ## Usage example
 
-```python
-from pycrayon import CrayonClient
-import time
+```lua
+local crayon = require("crayon")
 
-# Connect to the server
-cc = CrayonClient(hostname="server_machine_address")
+--  Connect to the server
+local cc = crayon.CrayonClient("server_machine_address")
 
-# Create a new experiment
-foo = cc.create_experiment("foo")
+--  Create a new experiment
+local foo = cc:create_experiment("foo")
 
-# Send some scalar values to the server
-foo.add_scalar_value("accuracy", 0, wall_time=11.3)
-foo.add_scalar_value("accuracy", 4, wall_time=12.3)
-# You can force the time and step values
-foo.add_scalar_value("accuracy", 6, wall_time=13.3, step=4)
+--  Send some scalar values to the server with their time
+foo:add_scalar_value("accuracy", 0, 11.3)
+foo:add_scalar_value("accuracy", 4, 12.3)
+--  You can force the step value also
+foo:add_scalar_value("accuracy", 6, 13.3, 4)
 
-# Get the datas sent to the server
-foo.get_scalar_values("accuracy")
-#>> [[11.3, 0, 0.0], [12.3, 1, 4.0], [13.3, 4, 6.0]])
+--  Get the datas sent to the server
+foo:get_scalar_values("accuracy")
+-- >> {
+--   1 :
+--     {
+--       1 : 11.3
+--       2 : 0
+--       3 : 0
+--     }
+--   2 :
+--     {
+--       1 : 12.3
+--       2 : 1
+--       3 : 4
+--     }
+--   3 :
+--     {
+--       1 : 13.3
+--       2 : 4
+--       3 : 6
+--     }
+-- }
 
-# backup this experiment as a zip file
-filename = foo.to_zip()
+--  backup this experiment as a zip file
+local filename = foo:to_zip()
 
-# delete this experiment from the server
-cc.remove_experiment("foo")
-# using the `foo` object from now on will result in an error
+--  delete this experiment from the server
+cc:remove_experiment("foo")
+--  using the `foo` object from now on will result in an error
 
-# Create a new experiment based on foo's backup
-bar = cc.create_experiment("bar", zip_file=filename)
+--  Create a new experiment based on foo's backup
+local bar = cc:create_experiment("bar", filename)
 
-# Get the name of all scalar plots in this experiment
-bar.get_scalar_names()
-#>> ["accuracy"]
+--  Get the name of all scalar plots in this experiment
+bar:get_scalar_names()
+-- >> {
+--   1 : "accuracy"
+-- }
 
-# Get the data for this experiment
-bar.get_scalar_values("accuracy")
-#>> [[11.3, 0, 0.0], [12.3, 1, 4.0], [13.3, 4, 6.0]])
+--  Get the data for this experiment
+bar:get_scalar_values("accuracy")
+-- >> {
+--   1 :
+--     {
+--       1 : 11.3
+--       2 : 0
+--       3 : 0
+--     }
+--   2 :
+--     {
+--       1 : 12.3
+--       2 : 1
+--       3 : 4
+--     }
+--   3 :
+--     {
+--       1 : 13.3
+--       2 : 4
+--       3 : 6
+--     }
+-- }
+
 ```
 
 ## Complete API
@@ -73,7 +120,7 @@ bar.get_scalar_values("accuracy")
 * `get_experiment_names()`
   * Returns a list of string containing the name of all the experiments on the server.
 
-* `create_experiment(xp_name, zip_file=None)`
+* `create_experiment(xp_name, zip_file=nil)`
   * Creates a new experiment with name `xp_name` and returns a `CrayonExperiment` object.
   * If `zip_file` is provided, this experiment is initialized with the content of the zip file (see `CrayonExperiment.to_zip` to get the zip file).
 
@@ -111,9 +158,9 @@ bar.get_scalar_values("accuracy")
 * `get_histogram_names()`
   * Returns a list of string containing the name of all the histogram values in this experiment.
 
-* `add_histogram_value(name, hist, tobuild=False, wall_time=-1, step=-1)`
+* `add_histogram_value(name, hist, tobuild=false, wall_time=-1, step=-1)`
   * Adds a new point with value `hist` to the histogram plot named `name`.
-  * If `tobuild` is `False`, `hist` should be a dictionary containing: `{"min": minimum value, "max": maximum value, "num": number of items in the histogram, "bucket_limit": a list with the right limit of each bucket, "bucker": a list with the number of element in each bucket, "sum": optional, the sum of items in the histogram, "sum_squares": optional, the sum of squares of items in the histogram}`.
+  * If `tobuild` is `false`, `hist` should be a dictionary containing: `{"min": minimum value, "max": maximum value, "num": number of items in the histogram, "bucket_limit": a list with the right limit of each bucket, "bucker": a list with the number of element in each bucket, "sum": optional, the sum of items in the histogram, "sum_squares": optional, the sum of squares of items in the histogram}`.
   * If `tobuild` if `True`, `hist` should be a list of value from which an histogram is going to be built.
   * If not specified, the `wall_time` will be set to the current time and the `step` to the step of the previous point with this name plus one (or `0` if its the first point with this name).
 
@@ -122,7 +169,7 @@ bar.get_scalar_values("accuracy")
   * Each entry is a list containing [wall_time, step, hist].
   * Where each `hist` is a dictionary similar to the one specified above.
 
-* `to_zip(filename=None)`
+* `to_zip(filename=nil)`
   * Retrieve all the datas from this experiment from the server and store it in `filename`. If `filename` is not specified, it is saved in the current folder.
   * Returns the name of the file where the datas have been saved.
   * This file can then be used to recreate a new experiment with the exact same content as this one.

@@ -35,7 +35,7 @@ import shutil
 
 def to_unicode(experiment):
 
-  assert isinstance(experiment, basestring) and experiment
+  assert experiment and isinstance(experiment, basestring)
 
   return unicode(experiment)
 
@@ -197,8 +197,8 @@ def get_all_experiments():
   if experiment:
     try:
       experiment = to_unicode(experiment)
-    except TypeError:
-      return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
+    except:
+      return wrong_argument("Experiment name should be a non-empty string or unicode instead of '{}'".format(type(experiment)))
     if not tb_xp_writer_exists(experiment):
       return wrong_argument("Unknown experiment name '{}'".format(experiment))
     if experiment in tb_data:
@@ -222,8 +222,8 @@ def post_experiment():
   experiment = request.get_json()
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
-    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
+  except:
+    return wrong_argument("Experiment name should be a non-empty string or unicode instead of '{}'".format(type(experiment)))
 
   if tb_xp_writer_exists(experiment):
     return wrong_argument("'{}' experiment already exists".format(experiment))
@@ -236,8 +236,8 @@ def delete_experiment():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
-    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
+  except:
+    return wrong_argument("Experiment name should be a non-empty string or unicode instead of '{}'".format(type(experiment)))
 
   if not tb_xp_writer_exists(experiment):
     return wrong_argument("'{}' experiment does not already exists".format(experiment))
@@ -257,8 +257,8 @@ def get_scalars():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
-    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
+  except:
+    return wrong_argument("Experiment name should be a non-empty string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   if (not experiment) or (not name):
     return wrong_argument("xp and name arguments are required")
@@ -279,8 +279,8 @@ def post_scalars():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
-    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
+  except:
+    return wrong_argument("Experiment name should be a non-empty string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   if (not experiment) or (not name):
     return wrong_argument("xp and name arguments are required")
@@ -308,8 +308,8 @@ def get_histograms():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
-    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
+  except:
+    return wrong_argument("Experiment name should be a non-empty string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   if (not experiment) or (not name):
     return wrong_argument("xp and name arguments are required")
@@ -330,8 +330,8 @@ def post_histograms():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
-    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
+  except:
+    return wrong_argument("Experiment name should be a non-empty string or unicode instead of '{}'".format(type(experiment)))
   name = request.args.get('name')
   to_build = request.args.get('tobuild')
   if (not experiment) or (not name) or (not to_build):
@@ -386,8 +386,8 @@ def get_backup():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
-    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
+  except:
+    return wrong_argument("Experiment name should be a non-empty string or unicode instead of '{}'".format(type(experiment)))
   if not experiment:
     return wrong_argument("xp argument is required")
 
@@ -405,8 +405,8 @@ def post_backup():
   experiment = request.args.get('xp')
   try:
     experiment = to_unicode(experiment)
-  except TypeError:
-    return wrong_argument("Experiment name should be of type string or unicode instead of '{}'".format(type(experiment)))
+  except:
+    return wrong_argument("Experiment name should be a non-empty string or unicode instead of '{}'".format(type(experiment)))
   force = request.args.get('force')
   if (not experiment) or (not force):
     return wrong_argument("xp and force argument are required")
@@ -416,13 +416,17 @@ def post_backup():
     return wrong_argument("Experiment '{}' already exists".format(experiment))
 
   folder_path = tensorboard_folder.format(experiment)
-
-  if "archive" not in request.files:
-    return wrong_argument("No file provided or not named 'archive'")
-
   zip_file_path = "/tmp/{}.zip".format(experiment)
-  backup_data = request.files["archive"]
-  backup_data.save(zip_file_path)
+
+  if "archive" in request.files:
+    backup_data = request.files["archive"]
+    backup_data.save(zip_file_path)
+  else:
+    content_type = request.headers.get('Content-type', '')
+    if (not content_type) or (content_type != "application/zip"):
+      return wrong_argument("Backup post request should contain a file or a zip")
+    with open(zip_file_path, "wb") as f:
+      f.write(request.data)
 
   folder_path = tensorboard_folder.format(experiment)
   Popen("mkdir -p {}".format(folder_path),stdout=PIPE, shell=True)
