@@ -67,19 +67,22 @@ do
     end
 
     function CrayonClient:open_experiment(xp_name)
-        assert(type(xp_name)=="string")
+        assert(type(xp_name)=="string", "Expected a string, but got "
+                   .. type(xp_name) .. ".")
         return CrayonExperiment(xp_name, self, false)
     end
 
     function CrayonClient:create_experiment(xp_name, zip_file)
-        assert(type(xp_name)=="string")
+        assert(type(xp_name)=="string", "Expected a string, but got "
+                   .. type(xp_name) .. ".")
         return CrayonExperiment(xp_name, self, true, zip_file)
     end
 
     function CrayonClient:remove_experiment(xp_name)
-        assert(type(xp_name)=="string")
+        assert(type(xp_name)=="string", "Expected a string, but got "
+                   .. type(xp_name) .. ".")
         query = "/data"
-        local r = requests.get{
+        local r = requests.delete{
             url = self.url..query,
             params = {xp = xp_name}
         }
@@ -90,9 +93,9 @@ do
     end
 
     function CrayonClient:remove_all_experiments()
-        local xp_list = self.get_experiment_names()
+        local xp_list = self:get_experiment_names()
         for i, xp_name in pairs(xp_list) do
-            self.remove_experiment(xp_name)
+            self:remove_experiment(xp_name)
         end
     end
 end
@@ -172,6 +175,7 @@ do
     __init_from_file = function(self, zip_file, force)
         local file = io.open(zip_file, "rb")
         local content = file:read("*all")
+        assert(file, "File cannot be opened. Check it exists!")
         file:close()
 
         local query = "/backup"
@@ -215,10 +219,9 @@ do
     end
 
     function CrayonExperiment:add_scalar_dict(data, wall_time, step)
-        for nane, value in pairs(data) do
-            if type(name) ~= "string" then
-                error("Scalar name should be a string, got: " .. name .. ".")
-            end
+        for name, value in pairs(data) do
+            assert(type(name)=="string", "Expected a string, but got "
+                       .. type(name) .. ".")
             self.add_scalar_value(name, value, wall_time, step)
         end
     end
