@@ -5,6 +5,7 @@ import os
 from .helper import Helper
 from pycrayon.crayon import CrayonClient
 
+
 class CrayonClientTestSuite(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
@@ -28,7 +29,8 @@ class CrayonClientTestSuite(unittest.TestCase):
         CrayonClient(port=self.test_server_port)
 
     def test_init_wrong_localhost(self):
-        self.assertRaises(ValueError, CrayonClient, "not_open", self.test_server_port)
+        self.assertRaises(ValueError, CrayonClient, "not_open",
+                          self.test_server_port)
 
     def test_init_wrong_port(self):
         self.assertRaises(ValueError, CrayonClient, "localhost", 123412341234)
@@ -41,7 +43,7 @@ class CrayonClientTestSuite(unittest.TestCase):
         cc = CrayonClient(port=self.test_server_port)
         foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 1, step=2, wall_time=0)
-        foo2 = cc.open_experiment("foo")
+        cc.open_experiment("foo")
         foo.add_scalar_value("bar", 3, wall_time=1)
         self.assertEqual(foo.get_scalar_values("bar"),
                          [[0.0, 2, 1.0], [1.0, 3, 3.0]])
@@ -52,7 +54,7 @@ class CrayonClientTestSuite(unittest.TestCase):
         foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 1, step=2, wall_time=0)
         self.assertRaises(ValueError, cc.create_experiment, "foo")
-        foo2 = cc.open_experiment("foo")
+        cc.open_experiment("foo")
         cc.remove_experiment(foo.xp_name)
         self.assertRaises(ValueError, cc.remove_experiment, foo.xp_name)
         foo = cc.create_experiment("foo")
@@ -131,9 +133,9 @@ class CrayonClientTestSuite(unittest.TestCase):
         cc = CrayonClient(port=self.test_server_port)
         foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 0)
-        self.assertRaises(ValueError, foo.get_scalar_values,"")
+        self.assertRaises(ValueError, foo.get_scalar_values, "")
 
-    def test_add_scalar_dict(self):
+    def test_get_scalar_dict(self):
         cc = CrayonClient(port=self.test_server_port)
         foo = cc.create_experiment("foo")
         data = {"fizz": 3, "buzz": 5}

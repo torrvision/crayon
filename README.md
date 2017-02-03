@@ -1,4 +1,4 @@
-# Crayon [![Build Status](https://travis-ci.org/albanD/crayon.svg?branch=master)](https://travis-ci.org/albanD/crayon)
+# Crayon [![Build Status](https://travis-ci.org/torrvision/crayon.svg?branch=master)](https://travis-ci.org/torrvision/crayon)
 
 #### Crayon allows you to easily write any data that you want on [tensorboard](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tensorboard)
 

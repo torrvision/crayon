@@ -51,7 +51,8 @@ def tb_access_xp(experiment):
   if experiment not in xp_modified:
     return
   last_modified = xp_modified[experiment]
-  while time.time() < last_modified + 1:
+  # we use 1.1 here because CI might not have enough time to reload
+  while time.time() < last_modified + 1.1:
     time.sleep(0.01)
   del xp_modified[experiment]
 
