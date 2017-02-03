@@ -5,6 +5,7 @@ try:
 except:
     RuntimeError("Please run 'pip install docker' before using this module.")
 
+
 class Helper(object):
 
     def __init__(self, start=True, tb_ip=8888, server_ip=8889, name="crayon"):
@@ -27,7 +28,9 @@ class Helper(object):
         retry = 50
         while not running:
             try:
-                assert(requests.get("http://localhost:"+str(self.server_ip)).ok)
+                assert(
+                    requests.get("http://localhost:" + str(self.server_ip)).ok
+                )
                 running = True
             except:
                 retry -= 1
