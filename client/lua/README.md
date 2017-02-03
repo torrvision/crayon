@@ -65,7 +65,8 @@ $ docker rm -f crayon_lua_test
 local crayon = require("crayon")
 
 --  Connect to the server
-local cc = crayon.CrayonClient("server_machine_address")
+--  substitute localhost and port with the ones you are using
+local cc = crayon.CrayonClient("localhost", 8889)
 
 --  Create a new experiment
 local foo = cc:create_experiment("foo")
@@ -137,7 +138,6 @@ bar:get_scalar_values("accuracy")
 --       3 : 6
 --     }
 -- }
-
 ```
 
 
