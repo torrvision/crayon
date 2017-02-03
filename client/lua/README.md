@@ -2,6 +2,7 @@
 
 This is the lua client for the crayon package.
 
+
 ## Install
 
 * From luarocks:
@@ -13,6 +14,34 @@ $ luarocks install crayon
 ```bash
 $ luarocks make
 ```
+
+### Dependencies
+
+* `openssl`
+
+
+#### OpenSSL troubleshooting
+
+On some distributions installing `luasec` (which lua-requests depends on) will
+fail with some form of this error:
+
+```
+Error: Failed installing dependency: https://raw.githubusercontent.com/rocks-moonscript-org/moonrocks-mirror/master/lua-requests-1.1-1.src.rock \
+- Failed installing dependency: https://raw.githubusercontent.com/rocks-moonscript-org/moonrocks-mirror/master/luasec-0.6-1.rockspec - Could not find library file for OPENSSL
+  No file libssl.a in /usr/lib
+  No file libssl.so in /usr/lib
+  No file matching libssl.so.* in /usr/lib
+```
+
+To fix this (assuming openssl is already installed):
+
+```bash
+$ locate libssl.so
+[...]
+/usr/lib/x86_64-linux-gnu/libssl.so
+$ ln -s /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/libssl.so
+```
+
 
 ## Testing
 
@@ -28,6 +57,7 @@ $ lua(jit) test.lua
 # Remove test server
 $ docker rm -f crayon_lua_test
 ```
+
 
 ## Usage example
 
@@ -109,6 +139,7 @@ bar:get_scalar_values("accuracy")
 -- }
 
 ```
+
 
 ## Complete API
 
