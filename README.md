@@ -26,20 +26,15 @@ $ docker pull alband/crayon
 
 ### Client machine
 
-The client machine only need to install the client for the required language:
+The client machine only need to install the client for the required language.
+Detailed instructions can be read by nagivating to
+their [respective directories](client/).
 
-* Python 2:
+TL;DR:
 
-```bash
-$ pip install pycrayon
-```
-
-* Python 3:
-
-```bash
-$ pip3 install pycrayon
-```
-
+* Lua / Torch - `$ luarocks install crayon`
+* Python 2 - `$ pip install pycrayon`
+* Python 3 - `$ pip3 install pycrayon`
 
 ## Usage
 
@@ -58,5 +53,6 @@ client should send the data at `server_machine_address:8889`.
 
 See the documentation for the required language:
 
+* [Lua](client/lua/README.md#usage-example)
 * [Python](client/python/README.md#usage-example)
 
