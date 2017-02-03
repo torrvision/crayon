@@ -29,3 +29,6 @@ $ $PYTHON_VERSION -m unittest discover
 $ luarocks new_version crayonx.x-1.rockspec y.y-1 \
       https://raw.githubusercontent.com/torrvision/crayon/<new_hash>/client/lua/crayon.lua
 ```
+
+* Commit your changes, and tag commit in the form of `vy.y`.
+* Push to master (so that CI will deploy to PyPI).
