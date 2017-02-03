@@ -2,7 +2,7 @@ local requests = require("requests")
 local socket = require("socket")
 local json = require('cjson.safe')
 
-local __version__ = "0.4"
+local __version__ = 0.4
 
 local CrayonClient = {}
 local CrayonExperiment = {}
@@ -31,15 +31,24 @@ do
         -- Check that the server is running and at the same version
         local ok, r = pcall(requests.get, self.url)
         if not ok then
-            msg = "The server at "..self.hostname..":"..tostring(self.port).." does not appear to be up!"
+            msg = "The server at " .. self.hostname .. ":"
+                .. tostring(self.port) .. " does not appear to be up!"
             error(msg)
         end
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
-        if r.text ~= __version__ then
-            local msg = "Server runs version "..r.text.." while le client runs version"..__version__.."."
+        server_version = tonumber(r.text)
+
+        if not server_version then
+            local msg = "The page at " .. self.hostname .. ":"
+                .. tostring(self.port) .. " doesn't seem to be a Crayon server!"
+            error(msg)
+        end
+        if server_version ~= __version__ then
+            local msg = "Initialised client version " .. __version__
+                .. ", however found server running version " .. server_version .. "."
             error(msg)
         end
 
@@ -51,7 +60,7 @@ do
         local query = "/data"
         local r = requests.get(self.url..query)
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
         return r.json()
@@ -75,7 +84,7 @@ do
             params = {xp = xp_name}
         }
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
     end
@@ -140,7 +149,7 @@ do
             headers = json_headers
         }
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
     end
@@ -152,7 +161,7 @@ do
             params = {xp = self.xp_name}
         }
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
         local content = r.json()
@@ -173,7 +182,7 @@ do
             headers = zip_headers
         }
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
     end
@@ -200,7 +209,7 @@ do
             headers = json_headers
         }
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
     end
@@ -208,7 +217,7 @@ do
     function CrayonExperiment:add_scalar_dict(data, wall_time, step)
         for nane, value in pairs(data) do
             if type(name) ~= "string" then
-                error("Scalar name should be a string, got: "..name..".")
+                error("Scalar name should be a string, got: " .. name .. ".")
             end
             self.add_scalar_value(name, value, wall_time, step)
         end
@@ -221,7 +230,7 @@ do
             params = {xp=self.xp_name, name=name}
         }
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
         return r.json()
@@ -251,7 +260,7 @@ do
             headers = json_headers
         }
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
     end
@@ -263,7 +272,7 @@ do
             params = {xp=self.xp_name, name=name}
         }
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
         return r.json()
@@ -280,12 +289,12 @@ do
         else
             for key,_ in pairs(required) do
                 if not data[key] then
-                    error("Built histogram is missing argument: "..key)
+                    error("Built histogram is missing argument: " .. key)
                 end
             end
             for key,_ in pairs(data) do
                 if (not required[key]) and (not optionnal[key]) then
-                    error("Built histogram has extra parameter: "..key)
+                    error("Built histogram has extra parameter: " .. key)
                 end
             end
         end
@@ -293,14 +302,14 @@ do
 
     -- Backup methods
     function CrayonExperiment:to_zip(filename)
-        filename = filename or "backup_"..self.xp_name.."_"..tostring(socket.gettime())..".zip"
+        filename = filename or "backup_" .. self.xp_name .. "_" .. tostring(socket.gettime()) .. ".zip"
         local query = "/backup"
         local r = requests.get{
             url = self.client.url..query,
             params = {xp=self.xp_name}
         }
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
 
@@ -319,7 +328,7 @@ do
             params = {xp=self.xp_name}
         }
         if r.status_code ~= 200 then
-            local msg = "Something went wrong. Server sent: "..r.text.."."
+            local msg = "Something went wrong. Server sent: " .. r.text .. "."
             error(msg)
         end
         return r.json()[element_type]
