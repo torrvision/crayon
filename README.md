@@ -1,8 +1,13 @@
 # Crayon [![Build Status](https://travis-ci.org/torrvision/crayon.svg?branch=master)](https://travis-ci.org/torrvision/crayon) [![PyPI](https://img.shields.io/pypi/v/pycrayon.svg)](https://pypi.python.org/pypi/pycrayon/)
 
-#### Crayon allows you to easily write any data that you want on [tensorboard](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tensorboard)
+Crayon is a framework that gives you access to the visualisation power
+of
+[TensorBoard](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tensorboard) with
+**any language**. Currently it provides a Python and a Lua interface, however
+you can easily implement a wrapper around the
+provided [RESTful API](doc/specs.md).
 
-#####################
+---
 
 This system is composed of two parts:
 * A server running on a given machine that will be used to display tensorboard
