@@ -22,7 +22,7 @@ $ luarocks make
 
 #### OpenSSL troubleshooting
 
-On some distributions installing `luasec` (which lua-requests depends on) will
+On some distributions / OSs installing `luasec` (which lua-requests depends on) will
 fail with some form of this error:
 
 ```
@@ -33,6 +33,8 @@ Error: Failed installing dependency: https://raw.githubusercontent.com/rocks-moo
   No file matching libssl.so.* in /usr/lib
 ```
 
+##### Linux fix
+
 To fix this (assuming openssl is already installed):
 
 ```bash
@@ -40,6 +42,20 @@ $ locate libssl.so
 [...]
 /usr/lib/x86_64-linux-gnu/libssl.so
 $ ln -s /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/libssl.so
+```
+
+##### Mac OS / OS X fix
+
+Assuming you have Homebrew installed:
+
+```bash
+$ brew install openssl
+$ brew list openssl
+[...]
+/usr/local/<YOUR_PATH_TO_OPEN_SSL>/openssl/<YOUR_VERSION>/lib
+/usr/local/<YOUR_PATH_TO_OPEN_SSL>/openssl/<YOUR_VERSION>/bin
+$ luarocks install luasec OPENSSL_DIR=/usr/local/$YOUR_PATH_TO_OPEN_SSL/openssl/<YOUR_VERSION>
+$ luarocks install crayon
 ```
 
 
