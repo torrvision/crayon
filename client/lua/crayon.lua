@@ -2,7 +2,7 @@ local requests = require("requests")
 local socket = require("socket")
 local json = require('cjson.safe')
 
-local __version__ = 0.4
+local __version__ = 0.5
 
 local CrayonClient = {}
 local CrayonExperiment = {}
