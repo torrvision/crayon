@@ -1,8 +1,7 @@
 package = "crayon"
 version = "0.5-1"
 source = {
-   url = "https://raw.githubusercontent.com/torrvision/crayon/0dcaed65d306aa5005a1f4c05d41949b78c341e1/client/lua/crayon.lua",
-   md5 = "d0c73b17d2b23696bd036b8e3f3d62b3"
+   url = "https://raw.githubusercontent.com/torrvision/crayon/7f2f96b6a44b6729cc0f5feae5d09df70b6eba19/client/lua/crayon.lua"
 }
 description = {
    summary = "A lua client for crayon.",
