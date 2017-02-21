@@ -241,7 +241,7 @@ def delete_experiment():
     return wrong_argument("Experiment name should be a non-empty string or unicode instead of '{}'".format(type(experiment)))
 
   if not tb_xp_writer_exists(experiment):
-    return wrong_argument("'{}' experiment does not already exists".format(experiment))
+    return wrong_argument("'{}' experiment does not already exist".format(experiment))
 
   # Delete folder on disk
   folder_path = tensorboard_folder.format(experiment)
