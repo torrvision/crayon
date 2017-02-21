@@ -95,6 +95,12 @@ def tb_add_scalar(experiment, name, wall_time, step, value):
   tb_modified_xp(experiment)
 
 def tb_add_histogram(experiment, name, wall_time, step, histo):
+  # Tensorflow does not support key being unicode
+  histo_string = {}
+  for k,v in histo.items():
+    histo_string[str(k)] = v
+  histo = histo_string
+
   writer = tb_get_xp_writer(experiment)
   summary = tf.Summary(value=[
       tf.Summary.Value(tag=name, histo=histo),
