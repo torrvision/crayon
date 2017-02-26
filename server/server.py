@@ -69,6 +69,7 @@ def last_timestamp_loaded(experiment, modified_type, last_timestamp):
       names = tb_data[experiment][modified_type]
       for name in names:
         req_res = tb_request(modified_type, experiment, name, safe=False)
+        req_res = json.loads(req_res)
         # Shall we just take the first one as a heuristic?
         for value in req_res:
           if value[0] >= last_timestamp:

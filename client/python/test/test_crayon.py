@@ -16,6 +16,7 @@ class CrayonClientTestSuite(unittest.TestCase):
 
     def setUp(self):
         self.h = Helper(
+            start=True,
             tb_ip=self.test_tb_port,
             server_ip=self.test_server_port,
             name=self.container_name)
@@ -43,7 +44,7 @@ class CrayonClientTestSuite(unittest.TestCase):
         cc = CrayonClient(port=self.test_server_port)
         foo = cc.create_experiment("foo")
         foo.add_scalar_value("bar", 1, step=2, wall_time=0)
-        cc.open_experiment("foo")
+        foo = cc.open_experiment("foo")
         foo.add_scalar_value("bar", 3, wall_time=1)
         self.assertEqual(foo.get_scalar_values("bar"),
                          [[0.0, 2, 1.0], [1.0, 3, 3.0]])

@@ -40,11 +40,13 @@ class Helper(object):
                 time.sleep(0.1)
 
     def kill(self):
-        self.container.kill()
+        if hasattr(self, "container"):
+            self.container.kill()
 
     def remove(self):
-        self.container.remove()
-        self.container = None
+        if hasattr(self, "container"):
+            self.container.remove()
+            self.container = None
 
     def kill_remove(self):
         # Could do with remove -f too
