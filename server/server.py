@@ -15,7 +15,8 @@ not_supported_types = [
   "graph",
   "images",
   "meta_graph",
-  "run_metadata"]
+  "run_metadata",
+  "firstEventTimestamp"]
 
 # Supported logging types
 supported_types = [
@@ -32,6 +33,24 @@ from os import path
 from subprocess import Popen, PIPE
 from flask import send_file
 import shutil
+
+# Command line arguments
+import argparse
+parser = argparse.ArgumentParser(description="Backend server for crayon")
+parser.add_argument("port", type=int, default=8889,
+          help="Port where to listen for incoming datas")
+parser.add_argument("backend_reload", type=float, default=1,
+          help="How fast is tensorboard reloading its backend")
+cli_args = parser.parse_args()
+
+# Delay timer
+# We add 50ms to load the files from disk
+request_delay = cli_args.backend_reload + 0.05
+
+#toremove
+import sys
+def pr(txt):
+  sys.stderr.write(str(txt)+"\n")
 
 def to_unicode(experiment):
 
@@ -51,8 +70,7 @@ def tb_access_xp(experiment):
   if experiment not in xp_modified:
     return
   last_modified = xp_modified[experiment]
-  # we use 1.1 here because CI might not have enough time to reload
-  while time.time() < last_modified + 1.1:
+  while time.time() < last_modified + request_delay:
     time.sleep(0.01)
   del xp_modified[experiment]
 
@@ -444,4 +462,4 @@ def post_backup():
   return "ok"
 
 
-app.run(host="0.0.0.0", port=8889)
+app.run(host="0.0.0.0", port=cli_args.port)

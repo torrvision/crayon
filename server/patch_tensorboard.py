@@ -1,5 +1,4 @@
 # This script should silently fail
-# try:
 from tensorflow.tensorboard import tensorboard
 import os
 import sys
@@ -7,16 +6,21 @@ import sys
 frontend_reload = "10"
 backend_reload = "0.1"
 
-for arg in sys.argv:
-  arg = arg.split("=")
-  if arg[0] == "frontend_reload":
-    frontend_reload = arg[1]
-  elif arg[0] == "backend_reload":
-    backend_reload = arg[1]
+import argparse
+parser = argparse.ArgumentParser(description="Backend server for crayon")
+parser.add_argument("frontend_reload", type=int,
+          help="Frontend reload value")
+parser.add_argument("backend_reload", type=float,
+          help="How fast is tensorboard reloading its backend")
+cli_args = parser.parse_args()
+
+frontend_reload = str(cli_args.frontend_reload)
+backend_reload = str(cli_args.backend_reload)
 
 
 tb_path = os.path.dirname(os.path.abspath(tensorboard.__file__))
 
+frontend_worked = False
 try:
   print("Patching tensorboard to change the delay to "+frontend_reload+"s")
 
@@ -59,10 +63,12 @@ try:
   with open(html_path, "w") as html_file:
     html_file.write("\n".join(content))
 
+  frontend_worked = True
   print("Success !")
 except:
   print("Patching failed")
 
+backend_worked = False
 try:
   print("Patching tensorboard to change backend reload to float.")
 
@@ -78,10 +84,21 @@ try:
   with open(tensorboard_path, "w") as source_file:
     source_file.write("\n".join(content))
 
-  print("Patch succeded, changing env variable to '"+backend_reload+"'")
-
-  os.environ["BACKEND_RELOAD"]
-
+  backend_worked = True
   print("Success !")
 except:
   print("Patching failed")
+
+if backend_worked:
+  if frontend_worked:
+    # Both worked, return 3
+    sys.exit(3)
+  else:
+    # Only backend worked, return 2
+    sys.exit(2)
+elif frontend_worked:
+  # Only frontend worked, return 1
+  sys.exit(1)
+else:
+  # Nothing worked, return -1
+  sys.exit(-1)

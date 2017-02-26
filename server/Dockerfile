@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow
+FROM tensorflow/tensorflow:latest
 RUN pip install flask
 ADD startup.sh /
 ADD server.py /

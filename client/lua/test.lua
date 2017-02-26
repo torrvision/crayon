@@ -16,6 +16,7 @@ end
 -- Check create / add scalar
 local foo = cc:create_experiment("foo")
 foo:add_scalar_value("bar", 3)
+print(foo:get_scalar_values("bar"))
 foo:add_scalar_value("bar", 4, 123)
 xp_list = cc:get_experiment_names()
 for k,v in pairs(xp_list) do
