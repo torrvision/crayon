@@ -44,8 +44,8 @@ parser.add_argument("backend_reload", type=float, default=1,
 cli_args = parser.parse_args()
 
 # Delay timer
-# We add 50ms to load the files from disk
-request_delay = cli_args.backend_reload + 0.05
+# We add 1s to make sure all files are loaded from disk
+request_delay = cli_args.backend_reload + 1
 
 def to_unicode(experiment):
 
@@ -53,20 +53,40 @@ def to_unicode(experiment):
 
   return unicode(experiment)
 
-
 ### Tensorboard utility functions
 tensorboard_folder = "/tmp/tensorboard/{}"
 # Make sure we do not access data too fast
 xp_modified = {}
-def tb_modified_xp(experiment):
-  xp_modified[experiment] = time.time()
+def tb_modified_xp(experiment, modified_type=None, wall_time=None):
+  assert(modified_type is None or modified_type in supported_types)
+  xp_modified[experiment] = (time.time(), modified_type, wall_time)
+
+def last_timestamp_loaded(experiment, modified_type, last_timestamp):
+  req_res = tb_request("runs", safe=False)
+  tb_data = json.loads(req_res)
+  if experiment in tb_data:
+    if modified_type in tb_data[experiment]:
+      names = tb_data[experiment][modified_type]
+      for name in names:
+        req_res = tb_request(modified_type, experiment, name, safe=False)
+        # Shall we just take the first one as a heuristic?
+        for value in req_res:
+          if value[0] >= last_timestamp:
+            return True
+  return False
 
 def tb_access_xp(experiment):
   if experiment not in xp_modified:
     return
-  last_modified = xp_modified[experiment]
+  last_modified, modified_type, last_timestamp = xp_modified[experiment]
+
   while time.time() < last_modified + request_delay:
-    time.sleep(0.01)
+    # If we know the last timestamp, try to exit early
+    if modified_type is not None:
+      if last_timestamp_loaded(experiment, modified_type, last_timestamp):
+        break
+    else:
+      time.sleep(0.01)
   del xp_modified[experiment]
 
 def tb_access_all():
@@ -105,7 +125,7 @@ def tb_add_scalar(experiment, name, wall_time, step, value):
   event = tf.Event(wall_time=wall_time, step=step, summary=summary)
   writer.add_event(event)
   writer.flush()
-  tb_modified_xp(experiment)
+  tb_modified_xp(experiment, modified_type="scalars", wall_time=wall_time)
 
 def tb_add_histogram(experiment, name, wall_time, step, histo):
   # Tensorflow does not support key being unicode
@@ -121,18 +141,19 @@ def tb_add_histogram(experiment, name, wall_time, step, histo):
   event = tf.Event(wall_time=wall_time, step=step, summary=summary)
   writer.add_event(event)
   writer.flush()
-  tb_modified_xp(experiment)
+  tb_modified_xp(experiment, modified_type="histograms", wall_time=wall_time)
 
 # Perform requests to tensorboard http api
-def tb_request(query_type, run=None, tag=None):
+def tb_request(query_type, run=None, tag=None, safe=True):
   request_url = "http://localhost:8888/data/{}"
   if run and tag:
     request_url += "?run={}&tag={}"
 
-  if run:
-    tb_access_xp(run)
-  else:
-    tb_access_all()
+  if safe:
+    if run:
+      tb_access_xp(run)
+    else:
+      tb_access_all()
 
   request_url = request_url.format(query_type, run, tag)
   try:
