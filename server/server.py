@@ -47,11 +47,6 @@ cli_args = parser.parse_args()
 # We add 50ms to load the files from disk
 request_delay = cli_args.backend_reload + 0.05
 
-#toremove
-import sys
-def pr(txt):
-  sys.stderr.write(str(txt)+"\n")
-
 def to_unicode(experiment):
 
   assert experiment and isinstance(experiment, basestring)

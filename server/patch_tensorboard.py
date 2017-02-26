@@ -3,9 +3,6 @@ from tensorflow.tensorboard import tensorboard
 import os
 import sys
 
-frontend_reload = "10"
-backend_reload = "0.1"
-
 import argparse
 parser = argparse.ArgumentParser(description="Backend server for crayon")
 parser.add_argument("frontend_reload", type=int,
