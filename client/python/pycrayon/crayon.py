@@ -2,6 +2,7 @@ import requests
 import json
 import time
 import collections
+import urllib
 
 from .version import __version__
 
@@ -56,7 +57,7 @@ class CrayonClient(object):
 
     def remove_experiment(self, xp_name):
         assert(isinstance(xp_name, basestring))
-        query = "/data?xp={}".format(xp_name)
+        query = "/data?xp={}".format(urllib.quote_plus(xp_name))
         r = requests.delete(self.url + query)
 
         if not r.ok:
@@ -100,7 +101,7 @@ class CrayonExperiment(object):
             raise ValueError(msg.format(r.text))
 
     def __init_from_existing(self):
-        query = "/data?xp={}".format(self.xp_name)
+        query = "/data?xp={}".format(urllib.quote_plus(self.xp_name))
         r = requests.get(self.client.url + query)
 
         if not r.ok:
@@ -118,7 +119,7 @@ class CrayonExperiment(object):
 
     def __init_from_file(self, zip_file, force=False):
         query = "/backup?xp={}&force={}".format(
-            self.xp_name, force)
+            urllib.quote_plus(self.xp_name), force)
         fileobj = open(zip_file, 'rb')
         r = requests.post(self.client.url + query, data={"mysubmit": "Go"},
                           files={"archive": ("backup.zip", fileobj)})
@@ -140,7 +141,7 @@ class CrayonExperiment(object):
             self.scalar_steps[name] += 1
         else:
             self.scalar_steps[name] = step + 1
-        query = "/data/scalars?xp={}&name={}".format(self.xp_name, name)
+        query = "/data/scalars?xp={}&name={}".format(urllib.quote_plus(self.xp_name), urllib.quote_plus(name))
         data = [wall_time, step, value]
         r = requests.post(self.client.url + query, json=data)
 
@@ -156,7 +157,7 @@ class CrayonExperiment(object):
             self.add_scalar_value(name, value, wall_time, step)
 
     def get_scalar_values(self, name):
-        query = "/data/scalars?xp={}&name={}".format(self.xp_name, name)
+        query = "/data/scalars?xp={}&name={}".format(urllib.quote_plus(self.xp_name), urllib.quote_plus(name))
 
         r = requests.get(self.client.url + query)
 
@@ -188,7 +189,7 @@ class CrayonExperiment(object):
             raise ValueError("Data was not provided in a valid format!")
 
         query = "/data/histograms?xp={}&name={}&tobuild={}".format(
-            self.xp_name, name, tobuild)
+            urllib.quote_plus(self.xp_name), urllib.quote_plus(name), tobuild)
 
         data = [wall_time, step, hist]
         r = requests.post(self.client.url + query, json=data)
@@ -198,7 +199,7 @@ class CrayonExperiment(object):
             )
 
     def get_histogram_values(self, name):
-        query = "/data/histograms?xp={}&name={}".format(self.xp_name, name)
+        query = "/data/histograms?xp={}&name={}".format(urllib.quote_plus(self.xp_name), urllib.quote_plus(name))
         r = requests.get(self.client.url + query)
 
         if not r.ok:
@@ -225,7 +226,7 @@ class CrayonExperiment(object):
 
     # Backup methods
     def to_zip(self, filename=None):
-        query = "/backup?xp={}".format(self.xp_name)
+        query = "/backup?xp={}".format(urllib.quote_plus(self.xp_name))
         r = requests.get(self.client.url + query)
 
         if not r.ok:
@@ -241,7 +242,7 @@ class CrayonExperiment(object):
 
     # Helper methods
     def __get_name_list(self, element_type):
-        query = "/data?xp={}".format(self.xp_name)
+        query = "/data?xp={}".format(urllib.quote_plus(self.xp_name))
         r = requests.get(self.client.url + query)
 
         if not r.ok:
