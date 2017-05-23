@@ -2,4 +2,5 @@
 setup.py
 pycrayon/__init__.py
 pycrayon/crayon.py
+pycrayon/version.py
 test/test_crayon.py
