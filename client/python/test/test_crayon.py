@@ -2,8 +2,8 @@ import unittest
 import time
 import os
 
-from .helper import Helper
-from pycrayon.crayon import CrayonClient
+from pycrayon import CrayonClient
+from helper import Helper
 
 
 class CrayonClientTestSuite(unittest.TestCase):
