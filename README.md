@@ -2,7 +2,7 @@
 
 Crayon is a framework that gives you access to the visualisation power
 of
-[TensorBoard](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tensorboard) with
+[TensorBoard](https://github.com/tensorflow/tensorboard) with
 **any language**. Currently it provides a Python and a Lua interface, however
 you can easily implement a wrapper around the
 provided [RESTful API](doc/specs.md).
