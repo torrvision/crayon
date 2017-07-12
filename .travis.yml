@@ -5,6 +5,9 @@ python:
   - '2.7'
   - '3.5'
 
+env:
+  - DOCKER_API_VERSION=1.24
+
 services:
   - docker
 
@@ -15,7 +18,8 @@ before_install:
   - popd
 script:
   - pushd client/python
-  - python -Wignore -m unittest discover
+  - python setup.py install
+  - python -Wignore -m unittest discover test/
   - popd
 
 before_deploy:

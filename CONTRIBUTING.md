@@ -9,7 +9,7 @@
 
 ```bash
 $ cd client/python
-$ $PYTHON_VERSION -m unittest discover
+$ $PYTHON_VERSION -m unittest discover test/
 ```
 
 * Push to your fork. Write a [good commit message][commit]. Submit a pull request (PR).
